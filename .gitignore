@@ -1,3 +1,10 @@
+# Alerts pipeline — tracked in wsm-monitor repo
+bigboss_share/
+monitor/
+Email/
+Weekly/
+RCA/
+
 # Credentials
 ZA.txt
 
