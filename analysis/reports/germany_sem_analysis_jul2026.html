@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Germany SEM Analysis — Jul 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #f5f5f5; }
+  .page { max-width: 960px; margin: 0 auto; background: #fff; padding: 36px 40px 48px; }
+  .report-header { border-bottom: 3px solid #1a56db; padding-bottom: 16px; margin-bottom: 28px; }
+  .report-header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .report-header .meta { font-size: 11px; color: #666; margin-top: 4px; }
+  .report-header .meta span { margin-right: 18px; }
+  h2 { font-size: 15px; font-weight: 700; color: #fff; background: #1a56db; padding: 7px 12px; margin: 28px 0 12px; border-radius: 4px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a56db; margin: 18px 0 8px; border-bottom: 1px solid #dbe9ff; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+  th { background: #f0f4ff; color: #1a56db; font-weight: 600; padding: 6px 10px; text-align: left; border: 1px solid #dbe9ff; }
+  td { padding: 5px 10px; border: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  tr:hover td { background: #eff6ff; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bold { font-weight: 600; }
+  .total-row td { background: #f0f4ff !important; font-weight: 700; }
+  .up { color: #059669; font-weight: 600; }
+  .down { color: #dc2626; font-weight: 600; }
+  .neutral { color: #92400e; font-weight: 600; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .callout { padding: 10px 14px; border-radius: 4px; margin: 10px 0 14px; font-size: 12px; line-height: 1.6; }
+  .callout-red { background: #fff1f2; border-left: 4px solid #f43f5e; }
+  .callout-green { background: #f0fdf4; border-left: 4px solid #22c55e; }
+  .callout-yellow { background: #fffbeb; border-left: 4px solid #f59e0b; }
+  .callout-blue { background: #eff6ff; border-left: 4px solid #3b82f6; }
+  .callout strong { display: block; margin-bottom: 3px; font-size: 12px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+  .kpi { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; text-align: center; }
+  .kpi .val { font-size: 20px; font-weight: 700; color: #1a56db; }
+  .kpi .label { font-size: 10px; color: #6b7280; margin-top: 2px; }
+  .kpi .delta { font-size: 11px; margin-top: 4px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+  ul { padding-left: 18px; line-height: 1.8; }
+  li { font-size: 12px; }
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; }
+  @media print { body { background: #fff; } .page { padding: 20px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="report-header">
+  <h1>Germany — SEM &amp; Channel Deep Dive</h1>
+  <div class="meta">
+    <span>📅 Prepared: July 23, 2026</span>
+    <span>📊 Period: Jan 2024 – H1 2026</span>
+    <span>🌎 Market: Germany | ManageEngine Google Ads</span>
+    <span style="color:#92400e;">&#9432; Spend &amp; CPL = USD (themes table) &nbsp;|&nbsp; All Products clicks/spend = INR (Google Ads DTS)</span>
+  </div>
+</div>
+
+<h2>Executive Summary</h2>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="val">−19%</div>
+    <div class="label">Google Non-Brand Leads 2024→2025</div>
+    <div class="delta down">354 → 285</div>
+  </div>
+  <div class="kpi">
+    <div class="val">7–8%</div>
+    <div class="label">Google Non-Brand Conv Rate (stable)</div>
+    <div class="delta up">31 convs in 2024 ✅</div>
+  </div>
+  <div class="kpi">
+    <div class="val">10.4%</div>
+    <div class="label">SEO Conv Rate 2024</div>
+    <div class="delta up">68 conversions in 2024</div>
+  </div>
+  <div class="kpi">
+    <div class="val">$89</div>
+    <div class="label">Bing ELA CPL (H1 2026)</div>
+    <div class="delta up">Cheapest channel ⭐</div>
+  </div>
+</div>
+
+<div class="callout callout-green">
+  <strong>✅ Germany converts — the problem is volume, not quality</strong>
+  Germany's Google Non-Brand is holding a steady 7.4% conversion rate in H1 2026 — the market converts reliably. Current challenge is lead volume at 149 for H1 (pace ~298/yr), down from 354 in 2024. The lever is spend: restore budget and conversions follow directly.
+</div>
+
+<div class="callout callout-red">
+  <strong>⚠️ Critical Issues</strong>
+  <ul style="margin-top:8px; padding-left:18px; line-height:2;">
+    <li><strong>Lead volume at risk</strong> — H1 2026: 149 NB leads (pace ~298/yr). ADAP at 64, ADMP at 42. Conv rate holding at 7.4% — the opportunity loss from low volume is direct.</li>
+    <li><strong>ADAP CPL: $1,713 in H12026</strong> — improved from 2025 peak but still elevated. 64 leads H1 vs 153 in full 2024. Bid strategy review needed to sustain the improvement.</li>
+    <li><strong>ADSSP Non-Brand at 5 leads in H12026</strong> — Brand ADSSP (10 leads) is now larger. Low NB conversion rate (3.6% historically) likely drove the cut. Review before scaling.</li>
+    <li><strong>LOG360 search at near-zero</strong> — Only 72 clicks in H12026, $29K spend. Zero conversions across all periods. Effectively paused.</li>
+    <li><strong>SEO: 116 leads in H12026</strong> — 8 conversions (6.9% rate). Volume declining fast from 653 in 2024. Highest-quality organic channel — worth investigating ranking drops.</li>
+  </ul>
+</div>
+
+<div class="callout callout-yellow">
+  <strong>🔍 Missed Opportunities</strong>
+  <ul style="margin-top:8px; padding-left:18px; line-height:2;">
+    <li><strong>ELA on Bing — $89/lead</strong> — 3 leads in H12026 at near-zero spend. Immediate opportunity to scale at very low cost.</li>
+    <li><strong>Restore Google NB spend</strong> — Conv rate proven at 7.4% in H12026. Current 149-lead pace at $1,364 CPL means every additional $14K spend = ~10 leads = ~1 conversion. Clear ROI case.</li>
+    <li><strong>ADSSP Bing: 8 leads in H12026</strong> — Growing. Conversions pending — follow-through needed in Q3.</li>
+    <li><strong>ADAP Bing at 17 leads H12026</strong> — 2 conversions in H12026, 6 in 2025. Strong and cost-efficient at $1,002/lead. Scale for Q4.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════ GOOGLE NON-BRAND ══════════════════ -->
+<h2>Google SEM — Non-Brand</h2>
+
+<h3>Overall Performance</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Trend</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">354</td><td class="num">285</td><td class="num">149</td><td><span class="down">↓ −19% YoY · pace ~298/yr</span></td></tr>
+    <tr><td>Total Spend</td><td class="num">$524,675</td><td class="num">$431,384</td><td class="num">$203,259</td><td><span class="down">↓ spend being cut</span></td></tr>
+    <tr><td>Total Conversions</td><td class="num">31</td><td class="num">22</td><td class="num">11</td><td><span class="neutral">↓ declining with leads</span></td></tr>
+    <tr><td>Conversion Rate</td><td class="num">8.8%</td><td class="num">7.7%</td><td class="num">7.4%</td><td><span class="up">✅ Stable — market is converting</span></td></tr>
+    <tr><td>CPL (overall)</td><td class="num">$1,482</td><td class="num">$1,513</td><td class="num">$1,364</td><td><span class="up">↓ CPL improving in H12026</span></td></tr>
+  </tbody>
+</table>
+
+<h3>Product-Wise Breakdown — Leads &amp; Conversions</h3>
+<table>
+  <thead><tr>
+    <th>Product</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 CPL</th><th class="num">2025 CPL</th><th class="num">H1 CPL</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">ADAP <span class="badge badge-yellow">CPL peaked</span></td>
+      <td class="num">153</td><td class="num">107</td><td class="num">64</td>
+      <td class="num">$1,584</td><td class="num">$2,233</td><td class="num">$1,713</td>
+      <td class="num">22</td><td class="num">14</td><td class="num">6</td>
+    </tr>
+    <tr>
+      <td class="bold">ADMP</td>
+      <td class="num">125</td><td class="num">95</td><td class="num">42</td>
+      <td class="num">$1,473</td><td class="num">$1,398</td><td class="num">$1,531</td>
+      <td class="num">7</td><td class="num">4</td><td class="num">4</td>
+    </tr>
+    <tr>
+      <td class="bold">ELA <span class="badge badge-green">↓ CPL</span></td>
+      <td class="num">38</td><td class="num">38</td><td class="num">24</td>
+      <td class="num">$1,251</td><td class="num">$990</td><td class="num">$847</td>
+      <td class="num">1</td><td class="num">2</td><td class="num">1</td>
+    </tr>
+    <tr>
+      <td class="bold">ADSSP <span class="badge badge-red">Collapsed</span></td>
+      <td class="num">28</td><td class="num">19</td><td class="num">5</td>
+      <td class="num">$1,563</td><td class="num">$1,155</td><td class="num">$1,707</td>
+      <td class="num">1</td><td class="num">1</td><td class="num">0</td>
+    </tr>
+    <tr>
+      <td class="bold">LOG360 <span class="badge badge-red">Paused</span></td>
+      <td class="num">10</td><td class="num">21</td><td class="num">13</td>
+      <td class="num">—</td><td class="num">—</td><td class="num">—</td>
+      <td class="num">0</td><td class="num">1</td><td class="num">0</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-blue">
+  <strong>ADAP conversion rate is rock-solid: ~9–13% consistently</strong>
+  ADAP conv rate: 22/153=14.4% (2024), 14/107=13.1% (2025), 6/64=9.4% (H12026). The product converts reliably in Germany. The issue is CPL inflation reducing lead volume — not a quality problem.
+</div>
+
+<!-- ══════════════════ ALL PRODUCTS SPEND ══════════════════ -->
+<h2>All Products — Google Search Clicks &amp; Spend (ads tables)</h2>
+<table>
+  <thead><tr>
+    <th>Product</th>
+    <th class="num">2024 Clicks</th><th class="num">2024 Spend</th>
+    <th class="num">2025 Clicks</th><th class="num">2025 Spend</th>
+    <th class="num">H1 2026 Clicks</th><th class="num">H1 2026 Spend</th>
+    <th>Trend</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">ADAP</td>
+      <td class="num">33,766</td><td class="num">₹2,05,98,669</td>
+      <td class="num">32,844</td><td class="num">₹2,13,35,679</td>
+      <td class="num">15,914</td><td class="num">₹1,13,06,340</td>
+      <td><span class="neutral">Spend flat, clicks stable</span></td>
+    </tr>
+    <tr>
+      <td class="bold">ADMP</td>
+      <td class="num">33,101</td><td class="num">₹1,50,34,439</td>
+      <td class="num">22,653</td><td class="num">₹1,14,99,289</td>
+      <td class="num">12,604</td><td class="num">₹68,42,101</td>
+      <td><span class="down">Spend cut −24% in 2025</span></td>
+    </tr>
+    <tr>
+      <td class="bold">ELA</td>
+      <td class="num">6,948</td><td class="num">₹33,08,052</td>
+      <td class="num">8,051</td><td class="num">₹29,60,081</td>
+      <td class="num">3,631</td><td class="num">₹18,65,268</td>
+      <td><span class="up">Clicks stable, spend declining</span></td>
+    </tr>
+    <tr>
+      <td class="bold">ADSSP</td>
+      <td class="num">4,474</td><td class="num">₹41,09,238</td>
+      <td class="num">4,086</td><td class="num">₹22,30,298</td>
+      <td class="num">1,749</td><td class="num">₹10,59,023</td>
+      <td><span class="down">Spend cut −46% in 2025</span></td>
+    </tr>
+    <tr>
+      <td class="bold">LOG360 <span class="badge badge-red">Paused</span></td>
+      <td class="num">699</td><td class="num">₹3,59,474</td>
+      <td class="num">71</td><td class="num">₹25,676</td>
+      <td class="num">72</td><td class="num">₹29,305</td>
+      <td><span class="down">−90% clicks in 2025</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════ GOOGLE BRAND ══════════════════ -->
+<h2>Google SEM — Brand</h2>
+
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>Total Leads</td><td class="num">57</td><td class="num">63</td><td class="num">29</td><td class="up">Growing — brand-keyword ad groups across products</td></tr>
+    <tr><td>Spend</td><td class="num">$30,043</td><td class="num">$22,967</td><td class="num">$11,333</td><td>Efficient spend</td></tr>
+    <tr><td>Total Conversions</td><td class="num">12</td><td class="num">6</td><td class="num">7</td><td class="up">Healthy ~6–12/year</td></tr>
+    <tr><td>CPL</td><td class="num">$527</td><td class="num">$364</td><td class="num">$390</td><td class="up">Very efficient vs NB</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-blue">
+  <strong>Brand product breakdown (leads 2024/2025/H12026):</strong>
+  ADAP: 28/28/13 · ADMP: 15/8/3 · ADSSP: 10/20/10 · LOG360: 4/7/3. Brand ADAP conv: 8/4/4 per year — very consistent. ADSSP brand growing strongly in 2025 (20 leads, 2 conv).
+</div>
+
+<!-- ══════════════════ BING ══════════════════ -->
+<h2>Bing SEM — Germany (Brand &amp; Non-Brand)</h2>
+
+<h3>Bing Non-Brand</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">~45</td><td class="num">76</td><td class="num">44</td><td class="up">Growing — 2025 strong year</td></tr>
+    <tr><td>Spend</td><td class="num">$40,696</td><td class="num">$58,745</td><td class="num">$36,652</td><td>Increasing investment</td></tr>
+    <tr><td>Conversions</td><td class="num">3</td><td class="num">6</td><td class="num">2</td><td>Steady</td></tr>
+    <tr><td>CPL</td><td class="num">$884</td><td class="num">$772</td><td class="num">$852</td><td class="up">Lower than Google NB</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <thead><tr>
+    <th>Product</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">H1 CPL</th><th class="num">2025 Conv</th><th>Note</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">ADAP <span class="badge badge-green">Converting</span></td>
+      <td class="num">18</td><td class="num">20</td><td class="num">17</td>
+      <td class="num">$1,002</td><td class="num">6</td>
+      <td class="up">6 conversions in 2025 — best Bing product</td>
+    </tr>
+    <tr>
+      <td class="bold">ADMP</td>
+      <td class="num">25</td><td class="num">40</td><td class="num">16</td>
+      <td class="num">$1,139</td><td class="num">0</td>
+      <td>Leads growing but no convs yet</td>
+    </tr>
+    <tr>
+      <td class="bold">ADSSP</td>
+      <td class="num">0</td><td class="num">8</td><td class="num">8</td>
+      <td class="num">—</td><td class="num">0</td>
+      <td>Just starting — watching</td>
+    </tr>
+    <tr>
+      <td class="bold">ELA <span class="badge badge-green">⭐ Cheapest</span></td>
+      <td class="num">2</td><td class="num">7</td><td class="num">3</td>
+      <td class="num up">$89</td><td class="num">0</td>
+      <td class="up">$89/lead — massively underinvested</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Bing Brand</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Note</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">12</td><td class="num">24</td><td class="num">16</td><td class="up">Growing</td></tr>
+    <tr><td>Conversions</td><td class="num">5</td><td class="num">5</td><td class="num">1</td><td>Stable ~5/year</td></tr>
+    <tr><td>CPL</td><td class="num">$280</td><td class="num">$264</td><td class="num">$212</td><td class="up">Declining — very efficient</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════ OTHER CHANNELS ══════════════════ -->
+<h2>Other Traffic Sources</h2>
+
+<div class="callout callout-green">
+  <strong>✅ Germany non-SEM channels convert at 10–12%</strong>
+
+<h3>SEO Leads &amp; Conversions — Local vs Global Pages</h3>
+<table>
+  <thead><tr>
+    <th>Page Type</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 2026 Conv</th>
+    <th class="num">CR 2024</th><th class="num">CR 2025</th><th class="num">CR H1 2026</th>
+    <th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">Global pages <span style="font-weight:400;color:#6b7280;">(/products/, legacy EN)</span></td>
+      <td class="num">345 <span style="font-size:10px;color:#9ca3af;">(53%)</span></td>
+      <td class="num">181 <span style="font-size:10px;color:#9ca3af;">(48%)</span></td>
+      <td class="num">71 <span style="font-size:10px;color:#9ca3af;">(61%)</span></td>
+      <td class="num">37</td><td class="num">15</td><td class="num">5</td>
+      <td class="num up">10.7%</td><td class="num">8.3%</td><td class="num">7.0%</td>
+      <td>Dominant channel — product &amp; KB pages in English</td>
+    </tr>
+    <tr>
+      <td class="bold">Local pages <span style="font-weight:400;color:#6b7280;">(/de/…)</span></td>
+      <td class="num">308 <span style="font-size:10px;color:#9ca3af;">(47%)</span></td>
+      <td class="num">198 <span style="font-size:10px;color:#9ca3af;">(52%)</span></td>
+      <td class="num">45 <span style="font-size:10px;color:#9ca3af;">(39%)</span></td>
+      <td class="num">31</td><td class="num">13</td><td class="num">3</td>
+      <td class="num">10.1%</td><td class="num">6.6%</td><td class="num">6.7%</td>
+      <td>German-language KB &amp; how-to articles; similar quality to global</td>
+    </tr>
+    <tr class="total-row">
+      <td>Total SEO</td>
+      <td class="num">653</td><td class="num">379</td><td class="num">116</td>
+      <td class="num">68</td><td class="num">28</td><td class="num">8</td>
+      <td class="num">10.4%</td><td class="num">7.4%</td><td class="num">6.9%</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-yellow" style="margin-top:4px;">
+  <strong>Key finding:</strong> Unlike some other markets, Germany's local /de/ and global pages convert at similar rates (10.1% vs 10.7% in 2024). Both are declining together — this is a volume/rankings issue, not a conversion quality gap. Top /de/ pages are German-language KB articles (e.g. AD login history, domain controller sync) and product pages. Investigating ranking drops on these pages should recover lead volume.
+</div>
+  SEO: 10.4%, Direct: 11.3%, ME Referral: 10.8%, From Product: 12.0%. Germany is a mature market with strong organic and referral pipelines. But all are declining in volume — SEO especially (653 → 379 → 116 leads).
+</div>
+
+<table>
+  <thead><tr>
+    <th>Source</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+    <th class="num">CR 2024</th><th class="num">CR 2025</th><th class="num">CR H1</th><th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">SEO <span class="badge badge-yellow">Declining</span></td>
+      <td class="num">653</td><td class="num">379</td><td class="num">116</td>
+      <td class="num">68</td><td class="num">28</td><td class="num">8</td>
+      <td class="num up">10.4%</td><td class="num">7.4%</td><td class="num">6.9%</td>
+      <td class="down">Biggest channel — but leads −42% in 2025</td>
+    </tr>
+    <tr>
+      <td class="bold">ME Referral</td>
+      <td class="num">186</td><td class="num">118</td><td class="num">55</td>
+      <td class="num">20</td><td class="num">9</td><td class="num">1</td>
+      <td class="num up">10.8%</td><td class="num">7.6%</td><td class="num">1.8%</td>
+      <td>Declining but high quality</td>
+    </tr>
+    <tr>
+      <td class="bold">AD Referral</td>
+      <td class="num">158</td><td class="num">85</td><td class="num">74</td>
+      <td class="num">12</td><td class="num">8</td><td class="num">4</td>
+      <td class="num">7.6%</td><td class="num">9.4%</td><td class="num">5.4%</td>
+      <td>H12026 leads holding up</td>
+    </tr>
+    <tr>
+      <td class="bold">Direct</td>
+      <td class="num">150</td><td class="num">128</td><td class="num">106</td>
+      <td class="num">17</td><td class="num">12</td><td class="num">7</td>
+      <td class="num up">11.3%</td><td class="num">9.4%</td><td class="num">6.6%</td>
+      <td class="up">Most stable channel</td>
+    </tr>
+    <tr>
+      <td class="bold">From Product</td>
+      <td class="num">92</td><td class="num">76</td><td class="num">36</td>
+      <td class="num">11</td><td class="num">6</td><td class="num">3</td>
+      <td class="num up">12.0%</td><td class="num">7.9%</td><td class="num up">8.3%</td>
+      <td class="up">Highest conv rate</td>
+    </tr>
+    <tr>
+      <td>Third Party</td>
+      <td class="num">94</td><td class="num">63</td><td class="num">17</td>
+      <td class="num">4</td><td class="num">1</td><td class="num">1</td>
+      <td class="num">4.3%</td><td class="num">1.6%</td><td class="num">5.9%</td>
+      <td>Declining</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+<!-- ══════════════════ ISSUES & OPPORTUNITIES ══════════════════ -->
+<h2>Issues, Opportunities &amp; Recommendations</h2>
+<div class="two-col">
+<div>
+<h3>❌ Issues</h3>
+<ul>
+  <li><strong>Lead volume in free-fall:</strong> Google NB 354 → 149 (H1 pace). Spend cuts are directly cutting conversions in a market that converts well.</li>
+  <li><strong>ADAP CPL inflation:</strong> $1,584 → $2,233 → $1,713. Peaked in 2025, improving. Review bid strategy to sustain H12026 gains.</li>
+  <li><strong>ADSSP NB eliminated:</strong> 28 → 5 leads. Brand ADSSP (10 leads) now bigger than NB.</li>
+  <li><strong>LOG360 search paused:</strong> 71 clicks in 2025, $25K spend. Effectively stopped.</li>
+  <li><strong>SEO declining:</strong> 653 → 379 → 116 leads. 68 → 28 → 8 conversions. High quality but losing reach.</li>
+</ul>
+</div>
+<div>
+<h3>✅ Opportunities</h3>
+<ul>
+  <li><strong>Reallocate LOG360 &amp; ADSSP NB to ELA Bing:</strong> LOG360 has zero conversions across 3 years ($29K H12026 spend wasted). ADSSP NB converts at only 3.6%. Shift these budgets to Bing ELA ($89/lead, proven channel) for immediate efficiency gain.</li>
+  <li><strong>Shift ADAP Google NB budget toward Bing ADAP:</strong> Google ADAP CPL ($1,713) is 71% higher than Bing ADAP ($1,002). Partial reallocation from Google to Bing ADAP maintains conversion output at lower cost.</li>
+  <li><strong>Review ADAP Google bid strategy:</strong> CPL peaked at $2,233 in 2025 and is recovering ($1,713 in H12026). Sustain this improvement — tighter bid controls could free up budget within the existing envelope.</li>
+  <li><strong>Bing ADSSP: 8 leads H12026 — conversion follow-up needed in Q3:</strong> Growing channel, but no conversions yet. Prioritise sales follow-through before deciding further allocation.</li>
+  <li><strong>Direct channel at 106 leads H12026 — highest stability:</strong> 6.6% conv rate maintained. No action needed; monitor for any drop.</li>
+</ul>
+</div>
+</div>
+
+<div class="footer">
+  Prepared by Arun John · ManageEngine SEM Intelligence · arun.john@zohocorp.com<br>
+  Data: themes_firstlast_semroi + ads_AdGroupBasicStats + salesleads_qt · BigQuery: it-security-online-marketing · Generated Jul 23, 2026
+</div>
+
+</div>
+</body>
+</html>

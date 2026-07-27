@@ -1,0 +1,31 @@
+product,theme,query
+ADAP,Active Directory Audit,how to audit changes to active directory objects
+ADAP,Active Directory Audit,how to audit active directory group membership changes
+ADAP,Active Directory Audit,how to monitor group membership changes in active directory
+ADAP,Active Directory Audit,how to track changes made to an active directory group
+ADAP,Active Directory Audit,how to track who added a user to a group
+ADAP,Active Directory Audit,how to track who changed a gpo
+ADAP,Active Directory Audit,how to track organizational unit changes in active directory
+ADAP,Active Directory Audit,how to find the source of account lockouts
+ADAP,Active Directory Audit,how to monitor privileged user activity in active directory
+ADAP,Active Directory Audit,who deleted a user in active directory
+ADMP,AD User Management,how to bulk create active directory users from csv
+ADMP,AD User Management,how to find and disable inactive users in active directory
+ADMP,AD User Management,how to automate user provisioning in active directory
+ADMP,AD User Management,how to automate user deprovisioning in active directory
+ADMP,AD User Management,how to automate onboarding and offboarding in active directory
+ADMP,AD User Management,how to bulk move ad users to another ou
+ADMP,AD User Management,how to move users between organizational units in active directory
+ADMP,AD User Management,how to bulk modify active directory users
+ADMP,AD User Management,how to delegate user management to helpdesk
+ADAP,File Server Audit,how to monitor file and folder access on windows file server
+ADAP,File Server Audit,how to audit file access events on windows file server
+ADAP,File Server Audit,how to track who read files on windows file server
+ADAP,File Server Audit,how to detect file changes in windows server
+ADAP,File Server Audit,how to audit failed access attempts to a shared folder
+ADAP,File Server Audit,how to audit shared folder access changes
+ADAP,File Server Audit,how to track folder permission changes
+ADAP,File Server Audit,how to detect file copy on windows server
+ADAP,File Server Audit,how to monitor file server activity in real time
+ADAP,File Server Audit,how to audit file read events
+ADAP,File Server Audit,who moved a file on the file server

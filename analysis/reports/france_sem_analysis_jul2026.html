@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>France SEM Analysis — Jul 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #f5f5f5; }
+  .page { max-width: 960px; margin: 0 auto; background: #fff; padding: 36px 40px 48px; }
+  .report-header { border-bottom: 3px solid #1a56db; padding-bottom: 16px; margin-bottom: 28px; }
+  .report-header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .report-header .meta { font-size: 11px; color: #666; margin-top: 4px; }
+  .report-header .meta span { margin-right: 18px; }
+  h2 { font-size: 15px; font-weight: 700; color: #fff; background: #1a56db; padding: 7px 12px; margin: 28px 0 12px; border-radius: 4px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a56db; margin: 18px 0 8px; border-bottom: 1px solid #dbe9ff; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12px; }
+  th { background: #f0f4ff; color: #1a56db; font-weight: 600; padding: 6px 10px; text-align: left; border: 1px solid #dbe9ff; }
+  td { padding: 5px 10px; border: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  tr:hover td { background: #eff6ff; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bold { font-weight: 600; }
+  .total-row td { background: #f0f4ff !important; font-weight: 700; }
+  .up { color: #059669; font-weight: 600; }
+  .down { color: #dc2626; font-weight: 600; }
+  .neutral { color: #92400e; font-weight: 600; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .callout { padding: 10px 14px; border-radius: 4px; margin: 10px 0 14px; font-size: 12px; line-height: 1.6; }
+  .callout-red { background: #fff1f2; border-left: 4px solid #f43f5e; }
+  .callout-green { background: #f0fdf4; border-left: 4px solid #22c55e; }
+  .callout-yellow { background: #fffbeb; border-left: 4px solid #f59e0b; }
+  .callout-blue { background: #eff6ff; border-left: 4px solid #3b82f6; }
+  .callout strong { display: block; margin-bottom: 3px; font-size: 12px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+  .kpi { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; text-align: center; }
+  .kpi .val { font-size: 20px; font-weight: 700; color: #1a56db; }
+  .kpi .label { font-size: 10px; color: #6b7280; margin-top: 2px; }
+  .kpi .delta { font-size: 11px; margin-top: 4px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  ul { padding-left: 18px; line-height: 1.8; }
+  li { font-size: 12px; }
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; }
+  @media print { body { background: #fff; } .page { padding: 20px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="report-header">
+  <h1>France — SEM &amp; Channel Deep Dive</h1>
+  <div class="meta">
+    <span>📅 Prepared: July 24, 2026</span>
+    <span>📊 Period: Jan 2024 – H1 2026</span>
+    <span>🌎 Market: France | ManageEngine Google Ads</span>
+    <span style="color:#92400e;">&#9432; Spend &amp; CPL = USD (themes table) &nbsp;|&nbsp; All Products clicks/spend = INR (Google Ads DTS)</span>
+  </div>
+</div>
+
+<h2>Executive Summary</h2>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="val">−77%</div>
+    <div class="label">Google Non-Brand Leads 2024→H1 pace</div>
+    <div class="delta down">179 → 82/yr pace</div>
+  </div>
+  <div class="kpi">
+    <div class="val">36%</div>
+    <div class="label">Google Brand Conv Rate H1 2026</div>
+    <div class="delta up">9 convs from 25 leads 🔥</div>
+  </div>
+  <div class="kpi">
+    <div class="val">$2,878</div>
+    <div class="label">ADAP Google NB CPL H1 2026</div>
+    <div class="delta down">Rising from $1,658 (2024)</div>
+  </div>
+  <div class="kpi">
+    <div class="val">0%</div>
+    <div class="label">Bing NB &amp; SEO Local Conv H12026</div>
+    <div class="delta down">Both collapsed ⚠️</div>
+  </div>
+</div>
+
+<div class="callout callout-green">
+  <strong>✅ Google Brand is France's standout performer</strong>
+  Google Brand converts at 36% in H1 2026 (9 conversions from 25 leads). CPL is low ($514) and conversions are high. This channel is working and should be protected. Bing Brand also showing strong H12026 conv rate (30% from 10 leads).
+</div>
+
+<div class="callout callout-red">
+  <strong>⚠️ Critical Issues</strong>
+  <ul style="margin-top:8px; padding-left:18px; line-height:2;">
+    <li><strong>Google NB leads at 41 in H12026</strong> (pace ~82/yr vs 179 in 2024, −54%). ADAP NB CPL has risen to $2,878 — highest of any market analysed. Only 3 conversions in H12026.</li>
+    <li><strong>ADAP NB zero conversions since 2024</strong> — 2 convs in 2024, then none in 2025 or H12026 despite continued spend ($2,426/$2,878 CPL). Spend efficiency is very poor.</li>
+    <li><strong>Bing Non-Brand conversion rate collapsed to 0%</strong> — 13.3% in 2024, now zero conversions in H12026 (17 leads, 0 conv). Investigate urgently.</li>
+    <li><strong>ADSSP and ELA Non-Brand eliminated</strong> — ADSSP: 14→0→2 leads. ELA: 17→0→0. Both effectively stopped after 2024.</li>
+    <li><strong>SEO conversions collapsed in H12026</strong> — 37 conversions in 2025, only 1 in H12026. Local /fr/ pages: 0 conversions (like Brazil pattern). 161 leads converting at 0.6%.</li>
+  </ul>
+</div>
+
+<div class="callout callout-yellow">
+  <strong>🔍 Reallocation Opportunities</strong>
+  <ul style="margin-top:8px; padding-left:18px; line-height:2;">
+    <li><strong>Shift ADAP NB budget to ADMP NB or Bing channels:</strong> ADAP NB CPL at $2,878 with zero conversions. ADMP NB ($1,384 CPL, 3.5% conv rate H12026) and Bing NB ($815 CPL, was 13% in 2024) are more efficient alternatives within the same budget envelope.</li>
+    <li><strong>Review Bing NB urgently:</strong> 13.3% conv rate in 2024 → 0% in H12026. Something changed — review bid strategy, landing pages, and sales follow-through before writing off the channel.</li>
+    <li><strong>Fix ADAP bid strategy:</strong> CPL tripled ($1,658 → $2,878). Review bid caps and match types to recover efficiency within existing spend.</li>
+    <li><strong>SEO /fr/ local page investigation:</strong> 26 conversions from /fr/ pages in 2025, zero in H12026. Content team needs to review ranking changes on top /fr/ pages.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════ GOOGLE NON-BRAND ══════════════════ -->
+<h2>Google SEM — Non-Brand</h2>
+
+<h3>Overall Performance</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Trend</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">179</td><td class="num">85</td><td class="num">41</td><td><span class="down">↓ −53% YoY · pace ~82/yr</span></td></tr>
+    <tr><td>Total Spend</td><td class="num">$244,106</td><td class="num">$148,626</td><td class="num">$72,662</td><td><span class="down">↓ spend cut in line with leads</span></td></tr>
+    <tr><td>Total Conversions</td><td class="num">6</td><td class="num">9</td><td class="num">3</td><td><span class="neutral">→ conv improving in 2025</span></td></tr>
+    <tr><td>Conversion Rate</td><td class="num">3.4%</td><td class="num bold up">10.6%</td><td class="num">7.3%</td><td><span class="up">↑ Improving despite fewer leads</span></td></tr>
+    <tr><td>CPL (overall)</td><td class="num">$1,363</td><td class="num">$1,748</td><td class="num">$1,730</td><td><span class="down">↑ Elevated but stabilising</span></td></tr>
+  </tbody>
+</table>
+
+<h3>Product-Wise Breakdown</h3>
+<table>
+  <thead><tr>
+    <th>Product</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 CPL</th><th class="num">2025 CPL</th><th class="num">H1 CPL</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">ADAP <span class="badge badge-red">CPL critical</span></td>
+      <td class="num">52</td><td class="num">29</td><td class="num">10</td>
+      <td class="num">$1,658</td><td class="num">$2,426</td><td class="num">$2,878</td>
+      <td class="num">2</td><td class="num">0</td><td class="num">0</td>
+    </tr>
+    <tr>
+      <td class="bold">ADMP</td>
+      <td class="num">96</td><td class="num">56</td><td class="num">29</td>
+      <td class="num">$1,220</td><td class="num">$1,382</td><td class="num">$1,384</td>
+      <td class="num">0</td><td class="num">3</td><td class="num">1</td>
+    </tr>
+    <tr>
+      <td class="bold">ADSSP <span class="badge badge-red">Eliminated</span></td>
+      <td class="num">14</td><td class="num">0</td><td class="num">2</td>
+      <td class="num">$1,766</td><td class="num">—</td><td class="num">$1,167</td>
+      <td class="num">0</td><td class="num">0</td><td class="num">0</td>
+    </tr>
+    <tr>
+      <td class="bold">ELA <span class="badge badge-red">Stopped</span></td>
+      <td class="num">17</td><td class="num">0</td><td class="num">0</td>
+      <td class="num">$940</td><td class="num">—</td><td class="num">—</td>
+      <td class="num">0</td><td class="num">0</td><td class="num">0</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-red">
+  <strong>ADAP Non-Brand: zero conversions since 2024 despite $2,878 CPL in H12026</strong>
+  52 leads in 2024 with only 2 conversions (3.8%). Since then: 29 leads in 2025 with 0 conv, 10 leads in H12026 with 0 conv. CPL rising to $2,878. This is the least efficient channel in France — budget reallocation to Brand is recommended.
+</div>
+
+<!-- ══════════════════ GOOGLE BRAND ══════════════════ -->
+<h2>Google SEM — Brand ⭐</h2>
+
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>Total Leads</td><td class="num">39</td><td class="num">45</td><td class="num">25</td><td class="up">Stable</td></tr>
+    <tr><td>Spend</td><td class="num">$12,517</td><td class="num">$18,322</td><td class="num">$12,867</td><td>Low spend</td></tr>
+    <tr><td>Total Conversions</td><td class="num">12</td><td class="num">6</td><td class="num bold up">9</td><td class="up">Strong recovery in H12026</td></tr>
+    <tr><td>Conv Rate</td><td class="num">30.8%</td><td class="num">13.3%</td><td class="num bold up">36.0%</td><td class="up">Best channel in France</td></tr>
+    <tr><td>CPL</td><td class="num">$320</td><td class="num">$407</td><td class="num">$514</td><td>Rising but efficient vs NB</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-blue">
+  <strong>Brand product breakdown (leads 2024/2025/H12026):</strong>
+  ADAP: 13/11/5 · ADMP: 17/26/12 · ADSSP: 7/8/8. Conv: ADAP 4/1/2 · ADMP 0/1/1 · ADSSP 0/0/1. ADMP leads growing in brand (17→26→12 in H1). ADSSP brand stable at 8 leads H12026.
+</div>
+
+<!-- ══════════════════ BING ══════════════════ -->
+<h2>Bing SEM — France</h2>
+
+<h3>Bing Non-Brand</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">45</td><td class="num">46</td><td class="num">17</td><td class="down">Dropped sharply in H12026</td></tr>
+    <tr><td>Spend</td><td class="num">$31,739</td><td class="num">$37,832</td><td class="num">$13,856</td><td>Spend cut in H12026</td></tr>
+    <tr><td>Conversions</td><td class="num">6</td><td class="num">3</td><td class="num bold">0</td><td class="down">Zero conversions in H12026 ⚠️</td></tr>
+    <tr><td>Conv Rate</td><td class="num up">13.3%</td><td class="num">6.5%</td><td class="num bold">0.0%</td><td class="down">Collapsed — needs investigation</td></tr>
+    <tr><td>CPL</td><td class="num">$705</td><td class="num">$822</td><td class="num">$815</td><td>Lower than Google NB</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <thead><tr>
+    <th>Product</th><th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th><th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+  </tr></thead>
+  <tbody>
+    <tr><td class="bold">ADAP</td><td class="num">17</td><td class="num">13</td><td class="num">6</td><td class="num">1</td><td class="num">0</td><td class="num">0</td></tr>
+    <tr><td class="bold">ADMP</td><td class="num">28</td><td class="num">33</td><td class="num">10</td><td class="num">1</td><td class="num">1</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+
+<h3>Bing Brand</h3>
+<table>
+  <thead><tr>
+    <th>Metric</th><th class="num">2024</th><th class="num">2025</th><th class="num">H1 2026</th><th>Note</th>
+  </tr></thead>
+  <tbody>
+    <tr class="total-row"><td>Total Leads</td><td class="num">8</td><td class="num">12</td><td class="num">10</td><td>Small but stable</td></tr>
+    <tr><td>Conversions</td><td class="num">0</td><td class="num">0</td><td class="num bold up">3</td><td class="up">First conversions in H12026 (30% CR!)</td></tr>
+    <tr><td>CPL</td><td class="num">$173</td><td class="num">$331</td><td class="num">$204</td><td>Very efficient</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════ OTHER CHANNELS ══════════════════ -->
+<h2>Other Traffic Sources</h2>
+
+<table>
+  <thead><tr>
+    <th>Source</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+    <th class="num">CR 2024</th><th class="num">CR 2025</th><th class="num">CR H1</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">SEO <span class="badge badge-red">Conv collapsed</span></td>
+      <td class="num">765</td><td class="num">422</td><td class="num">161</td>
+      <td class="num">33</td><td class="num">37</td><td class="num bold">1</td>
+      <td class="num">4.3%</td><td class="num up">8.8%</td><td class="num bold down">0.6%</td>
+      <td class="down">Strong 2025 but H12026 conversion collapsed</td>
+    </tr>
+    <tr>
+      <td class="bold">AD Referral</td>
+      <td class="num">166</td><td class="num">77</td><td class="num">48</td>
+      <td class="num">6</td><td class="num">3</td><td class="num">2</td>
+      <td class="num">3.6%</td><td class="num">3.9%</td><td class="num">4.2%</td>
+      <td>Stable conv rate; leads declining</td>
+    </tr>
+    <tr>
+      <td class="bold">Direct <span class="badge badge-green">Stable</span></td>
+      <td class="num">109</td><td class="num">98</td><td class="num">62</td>
+      <td class="num">5</td><td class="num">7</td><td class="num">1</td>
+      <td class="num">4.6%</td><td class="num">7.1%</td><td class="num">1.6%</td>
+      <td class="neutral">Leads holding; H12026 conv low</td>
+    </tr>
+    <tr>
+      <td class="bold">ME Referral</td>
+      <td class="num">120</td><td class="num">72</td><td class="num">30</td>
+      <td class="num">0</td><td class="num">1</td><td class="num">1</td>
+      <td class="num">0%</td><td class="num">1.4%</td><td class="num">3.3%</td>
+      <td>Low quality historically</td>
+    </tr>
+    <tr>
+      <td class="bold">Third Party</td>
+      <td class="num">106</td><td class="num">94</td><td class="num">18</td>
+      <td class="num">2</td><td class="num">1</td><td class="num">0</td>
+      <td class="num">1.9%</td><td class="num">1.1%</td><td class="num">0%</td>
+      <td>Declining volume and quality</td>
+    </tr>
+    <tr>
+      <td class="bold">From Product</td>
+      <td class="num">72</td><td class="num">48</td><td class="num">13</td>
+      <td class="num">3</td><td class="num">1</td><td class="num">0</td>
+      <td class="num">4.2%</td><td class="num">2.1%</td><td class="num">0%</td>
+      <td>Declining</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-red">
+  <strong>⚠️ SEO Conv Collapse — 37 conversions in 2025, just 1 in H1 2026</strong>
+  SEO was France's #1 non-SEM channel: 765 leads in 2024, 422 in 2025 (8.8% conv rate). H12026 has 161 leads but only 1 conversion (0.6%). Both /fr/ local and global pages are affected. Needs urgent SEO &amp; Sales investigation.
+</div>
+
+<h3>SEO Leads &amp; Conversions — Local vs Global Pages</h3>
+<table>
+  <thead><tr>
+    <th>Page Type</th>
+    <th class="num">2024 Leads</th><th class="num">2025 Leads</th><th class="num">H1 2026</th>
+    <th class="num">2024 Conv</th><th class="num">2025 Conv</th><th class="num">H1 Conv</th>
+    <th class="num">CR 2024</th><th class="num">CR 2025</th><th class="num">CR H1</th>
+    <th>Observation</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td class="bold">Local pages <span style="font-weight:400;color:#6b7280;">(/fr/…)</span></td>
+      <td class="num">448 <span style="font-size:10px;color:#9ca3af;">(59%)</span></td>
+      <td class="num">265 <span style="font-size:10px;color:#9ca3af;">(63%)</span></td>
+      <td class="num">93 <span style="font-size:10px;color:#9ca3af;">(58%)</span></td>
+      <td class="num">20</td><td class="num">26</td><td class="num bold">0</td>
+      <td class="num">4.5%</td><td class="num up">9.8%</td><td class="num bold down">0.0%</td>
+      <td class="down">Conv rate was improving then collapsed to zero in H12026</td>
+    </tr>
+    <tr>
+      <td class="bold">Global pages <span style="font-weight:400;color:#6b7280;">(/products/, EN)</span></td>
+      <td class="num">317 <span style="font-size:10px;color:#9ca3af;">(41%)</span></td>
+      <td class="num">157 <span style="font-size:10px;color:#9ca3af;">(37%)</span></td>
+      <td class="num">68 <span style="font-size:10px;color:#9ca3af;">(42%)</span></td>
+      <td class="num">13</td><td class="num">11</td><td class="num">1</td>
+      <td class="num">4.1%</td><td class="num">7.0%</td><td class="num">1.5%</td>
+      <td class="down">Also declining; 1 conversion only in H12026</td>
+    </tr>
+    <tr class="total-row">
+      <td>Total SEO</td>
+      <td class="num">765</td><td class="num">422</td><td class="num">161</td>
+      <td class="num">33</td><td class="num">37</td><td class="num">1</td>
+      <td class="num">4.3%</td><td class="num">8.8%</td><td class="num">0.6%</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-yellow" style="margin-top:4px;">
+  <strong>Key finding:</strong> Both local /fr/ pages (58% of SEO leads) and global pages saw conv rates improve in 2025 — then collapse in H12026 together. The /fr/ local pages went to 0 conversions. Unlike Germany where rankings are declining, France's leads are still coming in (161 in H12026) but not converting — pointing to a sales/pipeline issue, not just a rankings drop.
+</div>
+
+<!-- ══════════════════ ISSUES & OPPORTUNITIES ══════════════════ -->
+<h2>Issues, Opportunities &amp; Recommendations</h2>
+<div class="two-col">
+<div>
+<h3>❌ Issues</h3>
+<ul>
+  <li><strong>ADAP NB: $2,878 CPL, 0 conversions since 2024.</strong> Leads declining (52→29→10). Worst cost-efficiency of any channel or market.</li>
+  <li><strong>Bing NB conv rate: 0% in H12026.</strong> Was 13.3% in 2024. 17 leads, 0 conversions. Investigate landing pages and follow-up.</li>
+  <li><strong>ADSSP and ELA NB stopped:</strong> Both at near-zero from 2025 onwards. No plan visible.</li>
+  <li><strong>SEO conv rate: 0.6% in H12026</strong> (was 8.8% in 2025). Local /fr/ pages at 0 conversions. Leads still arriving but not closing.</li>
+  <li><strong>Google NB conv rate improving</strong> (7.3% H12026) but lead volume so low (41 in H1) that absolute conversions remain limited.</li>
+</ul>
+</div>
+<div>
+<h3>✅ Opportunities</h3>
+<ul>
+  <li><strong>Reallocate ADAP NB to ADMP NB or Bing:</strong> ADAP NB CPL = $2,878 with 0 convs since 2024. ADMP NB at $1,384 CPL is still converting (3.5% in H12026). Alternatively, Bing NB CPL ($815) is ~53% cheaper than Google NB — shifting some ADAP NB budget to Bing ADAP/ADMP could recover volume at lower cost.</li>
+  <li><strong>Fix ADAP Google NB bid strategy first:</strong> CPL has gone from $1,658 (2024) to $2,878 (H12026) — a 74% increase. Review bid caps, match types and negative keywords before any reallocation decision.</li>
+  <li><strong>SEO &amp; Sales joint investigation:</strong> Leads still arriving (161 in H12026) but 0.6% conv rate. Unlike a pure rankings issue, this may be a sales pipeline or reseller gap. Needs to be investigated with the Sales team.</li>
+  <li><strong>Bing Brand showing promise:</strong> 30% conv rate in H12026 (3 convs from 10 leads). Very low CPL ($204). Protect this allocation.</li>
+</ul>
+</div>
+</div>
+
+<div class="footer">
+  Prepared by Arun John · ManageEngine SEM Intelligence · arun.john@zohocorp.com<br>
+  Data: themes_firstlast_semroi + ads_AdGroupBasicStats + salesleads_qt · BigQuery: it-security-online-marketing · Generated Jul 24, 2026
+</div>
+
+</div>
+</body>
+</html>

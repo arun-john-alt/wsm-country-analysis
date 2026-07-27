@@ -1,0 +1,22 @@
+# Credentials
+ZA.txt
+
+# Python env
+.venv/
+__pycache__/
+*.pyc
+
+# Has its own repo
+wsm-monitor/
+
+# Workbooks & archives
+*.xlsx
+*.tar.gz
+*.zip
+*.pdf
+
+# Raw BQ query output
+analysis/queries/*_data_*.txt
+
+# macOS
+.DS_Store
