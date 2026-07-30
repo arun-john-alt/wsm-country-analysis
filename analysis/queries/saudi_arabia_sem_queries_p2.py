@@ -1,10 +1,11 @@
 """
-Italy SEM Deep-Dive — Part 2 Queries
-Run after italy_sem_queries.py (all constants same).
+Saudi Arabia SEM Deep-Dive — Part 2 Queries
+Run after saudi_arabia_sem_queries.py (all constants same).
 Covers:
-  P1: ADAP monthly CPC / CTR from ads_AdGroupBasicStats
-  P2: Google NB + Bing NB monthly lead/conv trend (identify when things changed)
-  P3: Top SEO URLs for Italy (/it/ and global) with leads + convs
+  P1b: ADAP monthly CPC / CTR from ads_AdGroupBasicStats
+  P2a: Google NB + Bing NB monthly lead/conv trend
+  P2c: Google NB monthly by product (ADAP/ADMP/ELA)
+  P3:  Top SEO URLs for Saudi Arabia with leads + convs
 """
 import sys
 sys.path.insert(0, '/Users/arun-8846/Downloads/Monitor/wsm-monitor')
@@ -17,7 +18,7 @@ ADS = f"{PROJ}.{G.split('.')[-1]}.ads_AdGroupBasicStats_{ACCT}"
 AG  = f"{PROJ}.{G.split('.')[-1]}.ads_AdGroup_{ACCT}"
 CAM = f"{PROJ}.{G.split('.')[-1]}.ads_Campaign_{ACCT}"
 
-COUNTRY_SL  = "italy"
+COUNTRY_SL  = "saudi arabia"
 
 def run(label, sql):
     print(f"\n{'═'*70}")
@@ -37,15 +38,15 @@ def run(label, sql):
     return rows
 
 # ── P1: ADAP monthly CPC / CTR from ads_AdGroupBasicStats ────────────────────
-# Joins AdGroupBasicStats → AdGroup + Campaign → themes tmap (Product=ADAP, Italy)
+# Joins AdGroupBasicStats → AdGroup + Campaign → themes tmap (Product=ADAP, Saudi Arabia)
 # Returns INR (raw Google Ads billing)
-run("P1 · ADAP Italy — monthly clicks, spend(INR), avg CPC(INR), CTR (ads table)", f"""
+run("P1 · ADAP Saudi Arabia — monthly clicks, spend(INR), avg CPC(INR), CTR (ads table)", f"""
 WITH tmap AS (
   SELECT
     LOWER(TRIM(CampaignName))  AS cn,
     LOWER(TRIM(AdGroupName))   AS agn
   FROM `{ROI}`
-  WHERE CampaignCountry = 'Italy'
+  WHERE CampaignCountry = 'Saudi Arabia'
     AND Product = 'ADAP'
     AND CampaignName IS NOT NULL
     AND AdGroupName IS NOT NULL
@@ -84,13 +85,13 @@ ORDER BY 1
 
 # ── P1b: ADAP join fix — use both campaign + adgroup name ────────────────────
 # The tmap join above has a bug (joins agn=agn instead of cn=cn). Correct version:
-run("P1b · ADAP Italy — monthly (corrected join)", f"""
+run("P1b · ADAP Saudi Arabia — monthly (corrected join)", f"""
 WITH tmap AS (
   SELECT
     LOWER(TRIM(CampaignName))  AS cam_name,
     LOWER(TRIM(AdGroupName))   AS ag_name
   FROM `{ROI}`
-  WHERE CampaignCountry = 'Italy'
+  WHERE CampaignCountry = 'Saudi Arabia'
     AND Product = 'ADAP'
     AND CampaignName IS NOT NULL
     AND AdGroupName IS NOT NULL
@@ -125,7 +126,7 @@ GROUP BY 1
 ORDER BY 1
 """)
 
-# ── P2a: Google NB — monthly leads + convs (salesleads_qt, Italy) ─────────────
+# ── P2a: Google NB — monthly leads + convs (salesleads_qt, Saudi Arabia) ─────────────
 # Use to identify WHEN Google NB conv rate collapsed
 run("P2a · Google NB — monthly leads + convs (salesleads_qt)", f"""
 SELECT
@@ -146,7 +147,7 @@ GROUP BY 1
 ORDER BY 1
 """)
 
-# ── P2b: Bing NB — monthly leads + convs (salesleads_qt, Italy) ───────────────
+# ── P2b: Bing NB — monthly leads + convs (salesleads_qt, Saudi Arabia) ───────────────
 # Use to identify WHEN Bing NB conv rate improved (0%→10.3%)
 run("P2b · Bing NB — monthly leads + convs (salesleads_qt)", f"""
 SELECT
@@ -176,7 +177,7 @@ SELECT
   ROUND(SUM(Valid_Sales_Leads_First_Source)) AS leads,
   ROUND(SUM(Cost), 0)                        AS spend_usd
 FROM `{ROI}`
-WHERE CampaignCountry = 'Italy'
+WHERE CampaignCountry = 'Saudi Arabia'
   AND COALESCE(Source_Medium, Source___Medium) = 'google / cpc'
   AND Theme NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND Lead_Type = 'All Leads'
@@ -186,9 +187,9 @@ GROUP BY 1, 2
 ORDER BY 1, 2
 """)
 
-# ── P3: Top SEO URLs for Italy (google organic, salesleads_qt) ────────────────
+# ── P3: Top SEO URLs for Saudi Arabia (google organic, salesleads_qt) ────────────────
 # Identifies which /it/ and global pages are driving leads (and which are declining)
-run("P3 · Top SEO URLs Italy — leads + convs by URL (salesleads_qt)", f"""
+run("P3 · Top SEO URLs Saudi Arabia — leads + convs by URL (salesleads_qt)", f"""
 SELECT
   REGEXP_REPLACE(
     REGEXP_EXTRACT(LOWER(FIRST_SRC_URL_CLEANED), r'^(/[^?#]*)'),
@@ -219,7 +220,7 @@ ORDER BY leads_2025 DESC
 LIMIT 40
 """)
 
-print("\n\n✅ P2 queries complete. Add output to italy_sem_analysis_jul2026.html.")
+print("\n\n✅ P2 queries complete. Add output to saudi_arabia_sem_analysis_jul2026.html.")
 print("  - P1b: ADAP CPC/CTR trend → add to Google NB section or new 'Ads Performance' section")
 print("  - P2a: Google NB monthly → identify when conv rate changed")
 print("  - P2b: Bing NB monthly  → identify when 10.3% CR appeared")

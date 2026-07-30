@@ -1,17 +1,18 @@
 """
-Italy SEM Deep-Dive — BigQuery Queries
-Run: python3 italy_sem_queries.py
-Produces all numbers needed for italy_sem_analysis_jul2026.html.
-Same patterns as Brazil / Germany / France (Jul 2026).
+Saudi Arabia SEM Deep-Dive — BigQuery Queries
+Run: python3 analysis/queries/saudi_arabia_sem_queries.py
+Produces all numbers needed for saudi_arabia_sem_analysis_jul2026.html.
+Same patterns as Italy / France / Germany / Brazil (Jul 2026).
 
 Logic verified in analysis_patterns.py:
   - Source: COALESCE(Source_Medium, Source___Medium)
-  - Brand: Theme IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
-  - Leads: Valid_Sales_Leads_First_Source  (Italy = sales country)
+  - Brand: Theme IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding') — verify extras via Q16
+  - Leads: Valid_Sales_Leads_First_Source  (Saudi Arabia = sales country)
   - Lead_Type filter: 'All Leads'
   - Conversions: salesleads_qt COUNT(DISTINCT IF(Conversion='converted', ID, NULL))
   - Dedup: COUNT(DISTINCT ID)
   - Spend: Cost (USD, from themes)
+  - DRI: Kowsik
 """
 import sys, textwrap
 sys.path.insert(0, '/Users/arun-8846/Downloads/Monitor/wsm-monitor')
@@ -21,8 +22,8 @@ bq = bq_client()
 ROI = f"{PROJ}.{G.split('.')[-1]}.themes_firstlast_semroi"
 SL  = f"{PROJ}.sales_presales_leads_no_pi.salesleads_qt"
 
-COUNTRY_ROI = "Italy"
-COUNTRY_SL  = "italy"
+COUNTRY_ROI = "Saudi Arabia"
+COUNTRY_SL  = "saudi arabia"
 LEAD_TYPE   = "All Leads"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -326,9 +327,9 @@ HAVING yr != 'other'
 ORDER BY FIRST_SRC_GRP, yr
 """)
 
-# ── Q14: SEO — local vs global pages (salesleads_qt) ─────────────────────────
+# ── Q14: SEO — local /sa/ vs global (salesleads_qt) ──────────────────────────
 # Local = ANY country-code prefix URL — /it/, /de/, /fr/, /br/ etc. all count.
-# Anything outside the known country-prefix list = Global (EN).
+# Saudi Arabia has no /sa/ pages; this query will confirm 0 local rows.
 run("Q14 · SEO — local vs global pages by year (salesleads_qt)", f"""
 SELECT
   {YR_SL} AS yr,
@@ -348,9 +349,9 @@ HAVING yr != 'other'
 ORDER BY page_type, yr
 """)
 
-# ── Q15: DIAGNOSTIC — unique FIRST_SRC_GRP values for Italy (salesleads_qt) ──
-# Run once to see exact channel group names used for Italy
-run("Q15 · DIAGNOSTIC — distinct FIRST_SRC_GRP values for Italy", f"""
+# ── Q15: DIAGNOSTIC — unique FIRST_SRC_GRP values for Saudi Arabia (salesleads_qt) ──
+# Run once to see exact channel group names used for Saudi Arabia
+run("Q15 · DIAGNOSTIC — distinct FIRST_SRC_GRP values for Saudi Arabia", f"""
 SELECT
   FIRST_SRC_GRP,
   COUNT(DISTINCT ID) AS leads
@@ -363,9 +364,9 @@ GROUP BY 1
 ORDER BY leads DESC
 """)
 
-# ── Q16: DIAGNOSTIC — distinct FIRST_SRC_THEME values for Italy SEM ──────────
+# ── Q16: DIAGNOSTIC — distinct FIRST_SRC_THEME values for Saudi Arabia SEM ────────
 # Run once to confirm product theme names — validate Q9/Q10/Q11 CASE mapping
-run("Q16 · DIAGNOSTIC — distinct FIRST_SRC_THEME for Italy SEM (salesleads_qt)", f"""
+run("Q16 · DIAGNOSTIC — distinct FIRST_SRC_THEME for Saudi Arabia SEM (salesleads_qt)", f"""
 SELECT
   FIRST_SRC_GRP,
   FIRST_SRC_THEME,
@@ -400,4 +401,4 @@ HAVING yr != 'other'
 ORDER BY NEW_TRAFFIC_SRC_GRP, yr
 """)
 
-print("\n\n✅ All queries complete. Paste output into italy_sem_analysis_jul2026.html template.")
+print("\n\n✅ All queries complete. Paste output into saudi_arabia_sem_analysis_jul2026.html template.")

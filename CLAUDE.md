@@ -15,10 +15,15 @@ When asked to analyse any country for SEM:
 ## Hard rules (always apply)
 
 - `COALESCE(Source_Medium, Source___Medium)` — never Source_Medium alone
-- Brand filter: `Theme IN ('Branding','Log360 - Branding')` — verify Q16 for extras
+- Brand filter (full list — use exactly this in ALL queries, themes + salesleads_qt): `Theme IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')` — all 7 variants confirmed Jul 2026. Never use only 2-item list again.
 - Conv rate denominator = themes leads, not salesleads count
 - Spend = USD (themes), CPC = INR (ads_AdGroupBasicStats)
 - Sales countries: `Valid_Sales_Leads_First_Source`, `Lead_Type='All Leads'`
 - Reallocation language only — never "increase budget" / "scale up" / "expand allocation"
 - No cross-country comparison text in callout copy
-- Italy only: ELA + LOG360 + LOG360CLOUD = one merged product row
+- ELA + LOG360 + LOG360CLOUD = one merged product row (global rule — all countries, not Italy-only)
+- SEO local vs global split (Q14): Local = ANY URL matching `^/(br|fr|de|latam|es|au|za|it|nl|jp|in|uk)(/|$)` — includes /it/, /de/, /fr/ etc. Global = everything else. Not just the country-specific prefix, ALL country pages are "local"
+- Q14 organic filter: `FIRST_SRC_GRP IN ('google / organic','bing / organic','organic / (not set)','organic')` — always include `bing / organic` (France has 129, Germany has 103, Italy has 44+ Bing organic leads — omitting it understates SEO totals)
+- ELA group H1 2026 spend: EXCLUDE from `SUM(Cost)` — Log360 spend is duplicated in the themes table for H1 2026. Show ELA/LOG360/LOG360CLOUD H1 2026 CPL and Spend as `—` with footnote `†ELA/LOG360/LOG360CLOUD spend excluded in H1 2026 — duplicate attribution in themes data`. 2024 and 2025 spend is clean and reportable.
+- Channel attribution uses TWO columns — always report both: `FIRST_SRC_GRP` (salesleads_qt) for full-funnel channel mix (Q13); `NEW_TRAFFIC_SRC_GRP` (salesleads_qt) for the new grouping view (Q17). Both are required in every country report. Q17 section goes immediately before the footer.
+- Q17 template (copy verbatim for every new country, change COUNTRY_SL only): `SELECT {YR_SL} AS yr, NEW_TRAFFIC_SRC_GRP, COUNT(DISTINCT ID) AS total_leads, COUNT(DISTINCT IF(Conversion='converted', ID, NULL)) AS convs FROM \`{SL}\` WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}' AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP' AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026') GROUP BY 1, 2 HAVING yr != 'other' ORDER BY NEW_TRAFFIC_SRC_GRP, yr`
