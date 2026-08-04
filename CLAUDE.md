@@ -27,6 +27,7 @@ When asked to analyse any country for SEM:
   - Dedup: `COUNT(DISTINCT Email)` for lead counts, `COUNT(DISTINCT IF(Conversion='converted', Email, NULL))` for convs — matches CRM "Dist.email" view
   - Do NOT use `COUNT(DISTINCT ID)` for lead totals — it overcounts (one person can have multiple lead IDs)
   - The `PRODUCT_GROUP = 'AD_GROUP'` filter already existed; User_Type and isHaveToBeRemoved are the NEW additions verified Aug 2026
+- Campaign type exclusion (Q8–Q12, Q16): `FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL` — excludes both Display and PMax from SEM conv queries. Search only.
 - Reallocation language only — never "increase budget" / "scale up" / "expand allocation"
 - No cross-country comparison text in callout copy
 - ELA + LOG360 + LOG360CLOUD = one merged product row (global rule — all countries, not Italy-only)

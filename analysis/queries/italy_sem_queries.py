@@ -195,7 +195,7 @@ SELECT
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
-  AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+  AND FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL
   AND Junk = 'false'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
   AND isHaveToBeRemoved = 'Non Junk Email'
@@ -228,7 +228,7 @@ FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'google / cpc'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
-  AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+  AND FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL
   AND Junk = 'false'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
   AND isHaveToBeRemoved = 'Non Junk Email'
@@ -257,7 +257,7 @@ FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'google / cpc'
   AND FIRST_SRC_THEME IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
-  AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+  AND FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL
   AND Junk = 'false'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
   AND isHaveToBeRemoved = 'Non Junk Email'
@@ -286,7 +286,7 @@ FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'bing / cpc'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
-  AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+  AND FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL
   AND Junk = 'false'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
   AND isHaveToBeRemoved = 'Non Junk Email'
@@ -307,7 +307,7 @@ FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'bing / cpc'
   AND FIRST_SRC_THEME IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
-  AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+  AND FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL
   AND Junk = 'false'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
   AND isHaveToBeRemoved = 'Non Junk Email'
