@@ -19,6 +19,14 @@ When asked to analyse any country for SEM:
 - Conv rate denominator = themes leads, not salesleads count
 - Spend = USD (themes), CPC = INR (ads_AdGroupBasicStats)
 - Sales countries: `Valid_Sales_Leads_First_Source`, `Lead_Type='All Leads'`
+- **salesleads_qt standard filter (ALWAYS use all 4 — confirmed Aug 2026 against CRM):**
+  1. `Junk = 'false'`
+  2. `PRODUCT_GROUP = 'AD_GROUP'`
+  3. `User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')` — excludes existing customers and existing leads
+  4. `isHaveToBeRemoved = 'Non Junk Email'` — Mail type = Non Junk Email only
+  - Dedup: `COUNT(DISTINCT Email)` for lead counts, `COUNT(DISTINCT IF(Conversion='converted', Email, NULL))` for convs — matches CRM "Dist.email" view
+  - Do NOT use `COUNT(DISTINCT ID)` for lead totals — it overcounts (one person can have multiple lead IDs)
+  - The `PRODUCT_GROUP = 'AD_GROUP'` filter already existed; User_Type and isHaveToBeRemoved are the NEW additions verified Aug 2026
 - Reallocation language only — never "increase budget" / "scale up" / "expand allocation"
 - No cross-country comparison text in callout copy
 - ELA + LOG360 + LOG360CLOUD = one merged product row (global rule — all countries, not Italy-only)
@@ -26,4 +34,4 @@ When asked to analyse any country for SEM:
 - Q14 organic filter: `FIRST_SRC_GRP IN ('google / organic','bing / organic','organic / (not set)','organic')` — always include `bing / organic` (France has 129, Germany has 103, Italy has 44+ Bing organic leads — omitting it understates SEO totals)
 - ELA group H1 2026 spend: EXCLUDE from `SUM(Cost)` — Log360 spend is duplicated in the themes table for H1 2026. Show ELA/LOG360/LOG360CLOUD H1 2026 CPL and Spend as `—` with footnote `†ELA/LOG360/LOG360CLOUD spend excluded in H1 2026 — duplicate attribution in themes data`. 2024 and 2025 spend is clean and reportable.
 - Channel attribution uses TWO columns — always report both: `FIRST_SRC_GRP` (salesleads_qt) for full-funnel channel mix (Q13); `NEW_TRAFFIC_SRC_GRP` (salesleads_qt) for the new grouping view (Q17). Both are required in every country report. Q17 section goes immediately before the footer.
-- Q17 template (copy verbatim for every new country, change COUNTRY_SL only): `SELECT {YR_SL} AS yr, NEW_TRAFFIC_SRC_GRP, COUNT(DISTINCT ID) AS total_leads, COUNT(DISTINCT IF(Conversion='converted', ID, NULL)) AS convs FROM \`{SL}\` WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}' AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP' AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026') GROUP BY 1, 2 HAVING yr != 'other' ORDER BY NEW_TRAFFIC_SRC_GRP, yr`
+- Q17 template (copy verbatim for every new country, change COUNTRY_SL only): `SELECT {YR_SL} AS yr, NEW_TRAFFIC_SRC_GRP, COUNT(DISTINCT Email) AS total_leads, COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS convs FROM \`{SL}\` WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}' AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP' AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead') AND isHaveToBeRemoved = 'Non Junk Email' AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026') GROUP BY 1, 2 HAVING yr != 'other' ORDER BY NEW_TRAFFIC_SRC_GRP, yr`

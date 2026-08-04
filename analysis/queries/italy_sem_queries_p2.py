@@ -139,6 +139,8 @@ WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11))
       BETWEEN '2024-01-01' AND '2026-06-30'
@@ -160,6 +162,8 @@ WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11))
       BETWEEN '2024-01-01' AND '2026-06-30'
@@ -210,6 +214,8 @@ FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP IN ('google / organic', 'bing / organic')
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
   AND FIRST_SRC_URL_CLEANED IS NOT NULL

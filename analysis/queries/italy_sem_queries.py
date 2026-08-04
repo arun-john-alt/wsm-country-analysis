@@ -10,7 +10,7 @@ Logic verified in analysis_patterns.py:
   - Leads: Valid_Sales_Leads_First_Source  (Italy = sales country)
   - Lead_Type filter: 'All Leads'
   - Conversions: salesleads_qt COUNT(DISTINCT IF(Conversion='converted', ID, NULL))
-  - Dedup: COUNT(DISTINCT ID)
+  - Dedup: COUNT(DISTINCT Email) — CRM-verified filter Aug 2026
   - Spend: Cost (USD, from themes)
 """
 import sys, textwrap
@@ -190,13 +190,15 @@ SELECT
   FIRST_SRC_GRP                                           AS engine,
   CASE WHEN FIRST_SRC_THEME IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
        THEN 'Brand' ELSE 'Non-Brand' END                  AS brand_flag,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2, 3
@@ -220,14 +222,16 @@ SELECT
     WHEN REGEXP_CONTAINS(UPPER(FIRST_SRC_THEME), r'SPMP|PASSWORD') THEN 'SPMP'
     ELSE FIRST_SRC_THEME
   END AS product_group,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'google / cpc'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -247,14 +251,16 @@ SELECT
     WHEN REGEXP_CONTAINS(UPPER(FIRST_SRC_THEME), r'LOG360') THEN 'LOG360'
     ELSE FIRST_SRC_THEME
   END AS product_group,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'google / cpc'
   AND FIRST_SRC_THEME IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -274,14 +280,16 @@ SELECT
     WHEN REGEXP_CONTAINS(UPPER(FIRST_SRC_THEME), r'LOG360') THEN 'LOG360'
     ELSE FIRST_SRC_THEME
   END AS product_group,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'bing / cpc'
   AND FIRST_SRC_THEME NOT IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -293,14 +301,16 @@ ORDER BY product_group, yr
 run("Q12 · Bing Brand Convs — by year (salesleads_qt)", f"""
 SELECT
   {YR_SL} AS yr,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP = 'bing / cpc'
   AND FIRST_SRC_THEME IN ('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')
   AND (FIRST_SRC_CAMPAIGN_TYPE != 'Display' OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1
@@ -314,11 +324,13 @@ run("Q13 · All channels — leads + convs by year × FIRST_SRC_GRP (salesleads_
 SELECT
   {YR_SL} AS yr,
   FIRST_SRC_GRP,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -335,12 +347,14 @@ SELECT
   CASE WHEN REGEXP_CONTAINS(LOWER(FIRST_SRC_URL_CLEANED),
                              r'^/(br|fr|de|latam|es|au|za|it|nl|jp|in|uk)(/|$)')
        THEN 'Local (any country page)' ELSE 'Global (EN)' END AS page_type,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP IN ('google / organic','bing / organic','organic / (not set)','organic')
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -353,10 +367,12 @@ ORDER BY page_type, yr
 run("Q15 · DIAGNOSTIC — distinct FIRST_SRC_GRP values for Italy", f"""
 SELECT
   FIRST_SRC_GRP,
-  COUNT(DISTINCT ID) AS leads
+  COUNT(DISTINCT Email) AS leads
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1
@@ -369,12 +385,14 @@ run("Q16 · DIAGNOSTIC — distinct FIRST_SRC_THEME for Italy SEM (salesleads_qt
 SELECT
   FIRST_SRC_GRP,
   FIRST_SRC_THEME,
-  COUNT(DISTINCT ID) AS leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL)) AS convs
+  COUNT(DISTINCT Email) AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
@@ -388,11 +406,13 @@ run("Q17 · All channels — leads + convs by year × NEW_TRAFFIC_SRC_GRP (sales
 SELECT
   {YR_SL} AS yr,
   NEW_TRAFFIC_SRC_GRP,
-  COUNT(DISTINCT ID)                                      AS total_leads,
-  COUNT(DISTINCT IF(Conversion='converted', ID, NULL))    AS convs
+  COUNT(DISTINCT Email)                                    AS total_leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))  AS convs
 FROM `{SL}`
 WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}'
   AND Junk = 'false'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
 GROUP BY 1, 2
