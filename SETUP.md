@@ -28,10 +28,17 @@ When a teammate opens this repo and talks to you, your job is to:
 
 ---
 
-## 3. Infrastructure Setup (tell your teammate to do this once)
+## 3. One-Time Human Setup (do this once, then the AI takes over)
 
-### 3a. Clone both repos side by side
+> **AI: skip this section entirely.** These steps are for your teammate to run once on their machine. Once done, you will have everything you need in the open folder.
 
+### 3a. Get the repos (your teammate does this once)
+
+Both repos must sit side by side because `wsm-country-analysis` (this repo) imports `wsm_cfg.py` from `wsm-monitor`.
+
+If you already have the folders locally — just open `Monitor/` in your AI tool and start working. No cloning needed again.
+
+If starting fresh on a new machine:
 ```bash
 mkdir wsm && cd wsm
 git clone https://github.com/arun-john-alt/wsm-country-analysis.git Monitor
@@ -41,11 +48,11 @@ git clone https://github.com/arun-john-alt/wsm-monitor.git wsm-monitor
 Resulting structure:
 ```
 wsm/
-├── Monitor/          ← this repo
+├── Monitor/          ← this repo (open this folder in your AI tool)
 │   ├── CLAUDE.md
 │   ├── SETUP.md
 │   └── analysis/
-└── wsm-monitor/      ← shared config
+└── wsm-monitor/      ← shared config (don't need to open this)
     ├── wsm_cfg.py
     └── config.yaml
 ```
