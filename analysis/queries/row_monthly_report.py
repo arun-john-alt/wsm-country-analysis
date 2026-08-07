@@ -47,8 +47,16 @@ try:
     import openpyxl
     from openpyxl.styles import PatternFill, Font, Alignment
     from openpyxl.utils import get_column_letter
+    from openpyxl.cell.rich_text import InlineFont, CellRichText, TextBlock
+    RICH_TEXT = True
 except ImportError:
-    sys.exit("Missing openpyxl. Run: pip install openpyxl")
+    try:
+        import openpyxl
+        from openpyxl.styles import PatternFill, Font, Alignment
+        from openpyxl.utils import get_column_letter
+        RICH_TEXT = False
+    except ImportError:
+        sys.exit("Missing openpyxl. Run: pip install openpyxl")
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 ap = argparse.ArgumentParser()
@@ -343,33 +351,60 @@ def set_cell(ws, row, col, value=None, fill=None, font=None, align=None):
     return c
 
 def rich_cell(ws, row, col, number, yoy_str, fill=None):
-    """Write 'number (yoy_str)' as a plain bold string — matches canonical format."""
+    """Bold number + smaller grey (yoy%) in same cell. If no prior year, plain number only."""
     c = ws.cell(row=row, column=col)
-    if number == 0:
-        c.value = "—"
-        c.font  = af(size=10)
-        c.alignment = ac('center')
-        if fill: c.fill = fill
-        return c
-    c.value = f"{number:,} ({yoy_str})"
-    c.font  = af(bold=True, size=10)
     c.alignment = ac('center')
     if fill: c.fill = fill
+
+    if number == 0:
+        c.value = "—"
+        c.font = af(size=10)
+        return c
+
+    num_str = f"{number:,}"
+    if yoy_str == "—":
+        # No prior year — plain bold number, no YoY suffix
+        c.value = num_str
+        c.font = af(bold=True, size=11)
+        return c
+
+    # Bold number (11pt) + smaller grey YoY% (8pt)
+    # InlineFont sz is in half-points: 11pt=22, 8pt=16
+    if RICH_TEXT:
+        c.value = CellRichText(
+            TextBlock(InlineFont(b=True, sz=22), num_str),
+            TextBlock(InlineFont(b=False, sz=16, color="808080"), f" ({yoy_str})"),
+        )
+    else:
+        c.value = f"{num_str} ({yoy_str})"
+        c.font = af(bold=True, size=11)
     return c
 
 def dollar_rich(ws, row, col, number, yoy_str, fill=None):
-    """Write '$xxx,xxx (yoy_str)' as a plain bold string."""
+    """Bold $number + smaller grey (yoy%) in same cell."""
     c = ws.cell(row=row, column=col)
-    if number == 0:
-        c.value = "—"
-        c.font  = af(size=10)
-        c.alignment = ac('center')
-        if fill: c.fill = fill
-        return c
-    c.value = f"${number:,.0f} ({yoy_str})"
-    c.font  = af(bold=True, size=10)
     c.alignment = ac('center')
     if fill: c.fill = fill
+
+    if number == 0:
+        c.value = "—"
+        c.font = af(size=10)
+        return c
+
+    num_str = f"${number:,.0f}"
+    if yoy_str == "—":
+        c.value = num_str
+        c.font = af(bold=True, size=11)
+        return c
+
+    if RICH_TEXT:
+        c.value = CellRichText(
+            TextBlock(InlineFont(b=True, sz=22), num_str),
+            TextBlock(InlineFont(b=False, sz=16, color="808080"), f" ({yoy_str})"),
+        )
+    else:
+        c.value = f"{num_str} ({yoy_str})"
+        c.font = af(bold=True, size=11)
     return c
 
 # ── Build a single worksheet ──────────────────────────────────────────────────
