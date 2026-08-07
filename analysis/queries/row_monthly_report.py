@@ -328,202 +328,229 @@ def yoy_pct(cur, pyr):
     p = (cur - pyr) / pyr * 100
     return p, f"{'+' if p >= 0 else ''}{p:.0f}%"
 
-# ── Excel styles ──────────────────────────────────────────────────────────────
-YELLOW   = PatternFill("solid", fgColor="FFD700")
-PINK_H   = PatternFill("solid", fgColor="F4CCCC")   # section header pink
-LBLUE_H  = PatternFill("solid", fgColor="CFE2F3")   # section header light blue
-GREEN_H  = PatternFill("solid", fgColor="B6D7A8")   # section header green
-GREEN_D  = PatternFill("solid", fgColor="D9EAD3")   # data cell green (good YoY)
-PINK_D   = PatternFill("solid", fgColor="FCE8E6")   # data cell pink (bad YoY)
-COL_HDR  = PatternFill("solid", fgColor="EFEFEF")   # column header grey
+# ── Excel styles (verified against canonical july2026_yoy.xlsx) ───────────────
+# Fills — exact hex from canonical
+YELLOW   = PatternFill("solid", fgColor="FFD700")   # title row
+PINK_H   = PatternFill("solid", fgColor="FFB6C1")   # section A header + data bg
+LBLUE_H  = PatternFill("solid", fgColor="D9E8F5")   # section B header + data bg
+GREEN_H  = PatternFill("solid", fgColor="90EE90")   # section C header + data bg
+GREEN_D  = PatternFill("solid", fgColor="C6EFCE")   # ≥+10% YoY (good)
+PINK_D   = PatternFill("solid", fgColor="FFC7CE")   # ≤-10% YoY (bad)
+NAVY     = PatternFill("solid", fgColor="1F4E79")   # column header row
 
-def af(bold=False, size=10, color="000000", italic=False):
-    return Font(bold=bold, size=size, color=color, italic=italic)
+def af(bold=False, size=10, color="000000"):
+    return Font(bold=bold, size=size, color=color)
 
 def ac(h='center', v='center', wrap=False):
     return Alignment(horizontal=h, vertical=v, wrap_text=wrap)
 
-def set_cell(ws, row, col, value=None, fill=None, font=None, align=None):
-    c = ws.cell(row=row, column=col, value=value)
-    if fill:  c.fill  = fill
-    if font:  c.font  = font
-    if align: c.alignment = align
-    return c
-
 def rich_cell(ws, row, col, number, yoy_str, fill=None):
-    """Bold number + smaller grey (yoy%) in same cell. If no prior year, plain number only."""
+    """
+    Canonical format: bold 11pt dark (#1A1A1A) number + normal 8pt grey (#808080) YoY%.
+    No YoY suffix when no prior year data. Dash when number=0.
+    """
     c = ws.cell(row=row, column=col)
     c.alignment = ac('center')
     if fill: c.fill = fill
 
     if number == 0:
         c.value = "—"
-        c.font = af(size=10)
+        c.font = af(size=10, color="808080")
         return c
 
     num_str = f"{number:,}"
     if yoy_str == "—":
-        # No prior year — plain bold number, no YoY suffix
+        # No prior year data — plain bold number only
         c.value = num_str
-        c.font = af(bold=True, size=11)
+        c.font = af(bold=True, size=11, color="1A1A1A")
         return c
 
-    # Bold number (11pt) + smaller grey YoY% (8pt)
-    # InlineFont sz is in half-points: 11pt=22, 8pt=16
     if RICH_TEXT:
+        # sz in InlineFont = actual pt (not half-points), matching canonical
         c.value = CellRichText(
-            TextBlock(InlineFont(b=True, sz=22), num_str),
-            TextBlock(InlineFont(b=False, sz=16, color="808080"), f" ({yoy_str})"),
+            TextBlock(InlineFont(b=True,  sz=11, color="1A1A1A"), num_str),
+            TextBlock(InlineFont(b=False, sz=8,  color="808080"), f" ({yoy_str})"),
         )
     else:
         c.value = f"{num_str} ({yoy_str})"
-        c.font = af(bold=True, size=11)
+        c.font = af(bold=True, size=11, color="1A1A1A")
     return c
 
 def dollar_rich(ws, row, col, number, yoy_str, fill=None):
-    """Bold $number + smaller grey (yoy%) in same cell."""
+    """Same as rich_cell but formats number as $xxx,xxx."""
     c = ws.cell(row=row, column=col)
     c.alignment = ac('center')
     if fill: c.fill = fill
 
     if number == 0:
         c.value = "—"
-        c.font = af(size=10)
+        c.font = af(size=10, color="808080")
         return c
 
     num_str = f"${number:,.0f}"
     if yoy_str == "—":
         c.value = num_str
-        c.font = af(bold=True, size=11)
+        c.font = af(bold=True, size=11, color="1A1A1A")
         return c
 
     if RICH_TEXT:
         c.value = CellRichText(
-            TextBlock(InlineFont(b=True, sz=22), num_str),
-            TextBlock(InlineFont(b=False, sz=16, color="808080"), f" ({yoy_str})"),
+            TextBlock(InlineFont(b=True,  sz=11, color="1A1A1A"), num_str),
+            TextBlock(InlineFont(b=False, sz=8,  color="808080"), f" ({yoy_str})"),
         )
     else:
         c.value = f"{num_str} ({yoy_str})"
-        c.font = af(bold=True, size=11)
+        c.font = af(bold=True, size=11, color="1A1A1A")
     return c
 
-# ── Build a single worksheet ──────────────────────────────────────────────────
+# ── QA checklist (called before saving) ───────────────────────────────────────
+def qa_check(ws, n_data_rows):
+    errors = []
+    # Title in B2
+    if not ws['B2'].value:
+        errors.append("B2 missing title")
+    # Section headers in row 3
+    if not ws['D3'].value:
+        errors.append("D3 missing section A header")
+    # Data starts at row 5
+    if not ws['B5'].value:
+        errors.append("B5 missing first DM Region")
+    # Check expected row count
+    last_row = 4 + n_data_rows
+    if not ws.cell(row=last_row, column=2).value:
+        errors.append(f"Row {last_row} missing last DM Region")
+    if errors:
+        print(f"  ⚠️  QA WARNINGS: {errors}")
+    else:
+        print(f"  ✅ QA passed ({n_data_rows} data rows, title={ws['B2'].value!r})")
+
+# ── Build a single worksheet (canonical format) ───────────────────────────────
 def build_sheet(ws, title,
                 cur_a, cur_b, cur_spend, cur_csl, cur_csc,
                 pyr_a, pyr_b, pyr_spend, pyr_csl, pyr_csc):
+    """
+    Canonical layout (from july2026_yoy.xlsx analysis):
+      Col A: blank spacer (width 13)
+      Col B: DM Region (width 22)
+      Col C: DRI (width 14)
+      Col D: Section A — Leads (width 20)
+      Col E: Section A — Convs (width 13)
+      Col F: Section B — All Leads (width 13)
+      Col G: Section B — All Convs (width 13)
+      Col H: Section C — SEM Spend (width 13)
+      Col I: Section C — SEM Leads (width 13)
+      Col J: Section C — SEM Convs (width 13)
 
-    # ── Row 1: big title ──────────────────────────────────────────────────────
-    ws.merge_cells('A1:I1')
-    t = ws.cell(row=1, column=1, value=title)
+      Row 1: blank
+      Row 2: Title merged B2:J2, yellow fill, bold 14pt
+      Row 3: Section group headers — D3:E3 pink, F3:G3 blue, H3:J3 green
+      Row 4: Column headers — navy fill (FF1F4E79), bold 10pt white
+      Row 5+: Data rows
+    """
+
+    # ── Row 2: Title ──────────────────────────────────────────────────────────
+    ws.merge_cells('B2:J2')
+    t = ws.cell(row=2, column=2, value=title)
     t.fill = YELLOW
     t.font = af(bold=True, size=14)
     t.alignment = ac('center')
-    ws.row_dimensions[1].height = 28
+    ws.row_dimensions[2].height = 28
 
-    # ── Row 2: section group headers ─────────────────────────────────────────
-    ws.merge_cells('A2:B2')  # blank spacer
-    ws.cell(row=2, column=1).fill = YELLOW
-
-    ws.merge_cells('C2:D2')
-    s1 = ws.cell(row=2, column=3, value="All leads except Events, Third Party & Others")
+    # ── Row 3: Section group headers ─────────────────────────────────────────
+    ws.merge_cells('D3:E3')
+    s1 = ws.cell(row=3, column=4, value="All leads except Events, Third Party & Others")
     s1.fill = PINK_H; s1.font = af(bold=True, size=10); s1.alignment = ac('center')
 
-    ws.merge_cells('E2:F2')
-    s2 = ws.cell(row=2, column=5, value="All leads")
+    ws.merge_cells('F3:G3')
+    s2 = ws.cell(row=3, column=6, value="All leads")
     s2.fill = LBLUE_H; s2.font = af(bold=True, size=10); s2.alignment = ac('center')
 
-    ws.merge_cells('G2:I2')
-    s3 = ws.cell(row=2, column=7, value="SEM leads")
+    ws.merge_cells('H3:J3')
+    s3 = ws.cell(row=3, column=8, value="SEM leads")
     s3.fill = GREEN_H; s3.font = af(bold=True, size=10); s3.alignment = ac('center')
-    ws.row_dimensions[2].height = 22
+    ws.row_dimensions[3].height = 28
 
-    # ── Row 3: column headers ─────────────────────────────────────────────────
+    # ── Row 4: Column headers ─────────────────────────────────────────────────
     COL_DEFS = [
-        (1, "DM Region",                    COL_HDR),
-        (2, "DRI",                          COL_HDR),
-        (3, "All Leads\n(Created date)",    PINK_H),
-        (4, "All Conversions\n(Conv. Date)",PINK_H),
-        (5, "All Leads\n(Created date)",    LBLUE_H),
-        (6, "All Conversions\n(Conv. Date)",LBLUE_H),
-        (7, "SEM Spending\n(Google USD)",   GREEN_H),
-        (8, "SEM Leads\n(Created date)",    GREEN_H),
-        (9, "SEM Conversions\n(Conv. Date)",GREEN_H),
+        (2, "DM Region",                     NAVY),
+        (3, "DRI",                            NAVY),
+        (4, "Leads\n(Created date)",          PINK_H),
+        (5, "Conversions\n(Conv. Date)",      PINK_H),
+        (6, "All Leads\n(Created date)",      LBLUE_H),
+        (7, "All Conversions\n(Conv. Date)",  LBLUE_H),
+        (8, "SEM Spending\n(Google USD)",     GREEN_H),
+        (9, "SEM Leads\n(Created date)",      GREEN_H),
+        (10,"SEM Conversions\n(Conv. Date)",  GREEN_H),
     ]
-    for col, title_h, fill in COL_DEFS:
-        c = ws.cell(row=3, column=col, value=title_h)
+    for col, hdr, fill in COL_DEFS:
+        c = ws.cell(row=4, column=col, value=hdr)
         c.fill = fill
-        c.font = af(bold=True, size=9)
+        # Navy header cells get white bold text; section-coloured cells get dark bold text
+        txt_color = "FFFFFF" if fill == NAVY else "000000"
+        c.font = af(bold=True, size=10, color=txt_color)
         c.alignment = ac('center', wrap=True)
-    ws.row_dimensions[3].height = 32
+    ws.row_dimensions[4].height = 28
 
-    # ── Data rows ─────────────────────────────────────────────────────────────
+    # ── Data rows (start at row 5) ────────────────────────────────────────────
     for i, (display, dri, themes_key, sl_key) in enumerate(DM_REGIONS):
-        row = i + 4
+        row = i + 5
 
-        # Section A — excl E/TP/O
-        al_c = gv(cur_a, display, 'leads')
-        al_p = gv(pyr_a, display, 'leads')
-        ac_c = gv(cur_a, display, 'convs')
-        ac_p = gv(pyr_a, display, 'convs')
+        # Section A
+        al_c = gv(cur_a, display, 'leads');  al_p = gv(pyr_a, display, 'leads')
+        ac_c = gv(cur_a, display, 'convs');  ac_p = gv(pyr_a, display, 'convs')
+        # Section B
+        bl_c = gv(cur_b, display, 'leads');  bl_p = gv(pyr_b, display, 'leads')
+        bc_c = gv(cur_b, display, 'convs');  bc_p = gv(pyr_b, display, 'convs')
+        # Section C
+        sp_c = gv(cur_spend, themes_key, 'spend_usd');  sp_p = gv(pyr_spend, themes_key, 'spend_usd')
+        sl_c = gv(cur_csl,   themes_key, 'sem_leads');  sl_p = gv(pyr_csl,   themes_key, 'sem_leads')
+        sc_c = gv(cur_csc,   sl_key,     'sem_convs');  sc_p = gv(pyr_csc,   sl_key,     'sem_convs')
 
-        # Section B — all leads
-        bl_c = gv(cur_b, display, 'leads')
-        bl_p = gv(pyr_b, display, 'leads')
-        bc_c = gv(cur_b, display, 'convs')
-        bc_p = gv(pyr_b, display, 'convs')
-
-        # Section C — SEM
-        sp_c = gv(cur_spend, themes_key, 'spend_usd')
-        sp_p = gv(pyr_spend, themes_key, 'spend_usd')
-        sl_c = gv(cur_csl,   themes_key, 'sem_leads')
-        sl_p = gv(pyr_csl,   themes_key, 'sem_leads')
-        sc_c = gv(cur_csc,   sl_key,     'sem_convs')
-        sc_p = gv(pyr_csc,   sl_key,     'sem_convs')
-
-        # YoY pcts
-        al_pct, al_str = yoy_pct(al_c, al_p)
-        ac_pct, ac_str = yoy_pct(ac_c, ac_p)
-        bl_pct, bl_str = yoy_pct(bl_c, bl_p)
-        bc_pct, bc_str = yoy_pct(bc_c, bc_p)
-        sp_pct, sp_str = yoy_pct(sp_c, sp_p)
-        sl_pct, sl_str = yoy_pct(sl_c, sl_p)
+        al_pct, al_str = yoy_pct(al_c, al_p);  ac_pct, ac_str = yoy_pct(ac_c, ac_p)
+        bl_pct, bl_str = yoy_pct(bl_c, bl_p);  bc_pct, bc_str = yoy_pct(bc_c, bc_p)
+        sp_pct, sp_str = yoy_pct(sp_c, sp_p);  sl_pct, sl_str = yoy_pct(sl_c, sl_p)
         sc_pct, sc_str = yoy_pct(sc_c, sc_p)
 
-        def fill_for(pct, section):
-            if pct is None: return section
-            if pct >= 10: return GREEN_D
+        def fill_for(pct, section_fill):
+            if pct is None: return section_fill
+            if pct >= 10:  return GREEN_D
             if pct <= -10: return PINK_D
-            return section  # no change = same as section colour
+            return section_fill
 
-        # Col A — DM Region (bold)
-        c = ws.cell(row=row, column=1, value=display)
+        # Col A — blank spacer
+        ws.cell(row=row, column=1).value = None
+
+        # Col B — DM Region
+        c = ws.cell(row=row, column=2, value=display)
         c.font = af(bold=True, size=10); c.alignment = ac('left', 'center')
 
-        # Col B — DRI
-        c = ws.cell(row=row, column=2, value=dri)
+        # Col C — DRI
+        c = ws.cell(row=row, column=3, value=dri)
         c.font = af(size=10); c.alignment = ac('left', 'center')
 
-        # Cols C–D — Section A (excl E/TP/O)
-        rich_cell(ws, row, 3, al_c, al_str, fill=fill_for(al_pct, PINK_H))
-        rich_cell(ws, row, 4, ac_c, ac_str, fill=fill_for(ac_pct, PINK_H))
+        # Cols D–E — Section A (excl E/TP/O)
+        rich_cell(ws, row, 4, al_c, al_str, fill=fill_for(al_pct, PINK_H))
+        rich_cell(ws, row, 5, ac_c, ac_str, fill=fill_for(ac_pct, PINK_H))
 
-        # Cols E–F — Section B (all leads)
-        rich_cell(ws, row, 5, bl_c, bl_str, fill=fill_for(bl_pct, LBLUE_H))
-        rich_cell(ws, row, 6, bc_c, bc_str, fill=fill_for(bc_pct, LBLUE_H))
+        # Cols F–G — Section B (all leads)
+        rich_cell(ws, row, 6, bl_c, bl_str, fill=fill_for(bl_pct, LBLUE_H))
+        rich_cell(ws, row, 7, bc_c, bc_str, fill=fill_for(bc_pct, LBLUE_H))
 
-        # Cols G–I — Section C (SEM)
-        dollar_rich(ws, row, 7, sp_c, sp_str, fill=fill_for(sp_pct, GREEN_H))
-        rich_cell(ws,  row, 8, sl_c, sl_str, fill=fill_for(sl_pct, GREEN_H))
-        rich_cell(ws,  row, 9, sc_c, sc_str, fill=fill_for(sc_pct, GREEN_H))
+        # Cols H–J — Section C (SEM)
+        dollar_rich(ws, row, 8,  sp_c, sp_str, fill=fill_for(sp_pct, GREEN_H))
+        rich_cell(ws,  row, 9,  sl_c, sl_str, fill=fill_for(sl_pct, GREEN_H))
+        rich_cell(ws,  row, 10, sc_c, sc_str, fill=fill_for(sc_pct, GREEN_H))
 
-        ws.row_dimensions[row].height = 20
+        ws.row_dimensions[row].height = 28
 
-    # ── Column widths ─────────────────────────────────────────────────────────
-    widths = [22, 14, 17, 16, 17, 16, 20, 17, 17]
-    for i, w in enumerate(widths, 1):
-        ws.column_dimensions[get_column_letter(i)].width = w
+    # ── Column widths (from canonical) ────────────────────────────────────────
+    for col, w in zip('ABCDEFGHIJ', [13, 22, 14, 20, 13, 13, 13, 13, 13, 13]):
+        ws.column_dimensions[col].width = w
 
-    ws.freeze_panes = 'C4'
+    # ── QA ────────────────────────────────────────────────────────────────────
+    qa_check(ws, len(DM_REGIONS))
+
+    ws.freeze_panes = 'D5'
 
 # ── Build workbook ─────────────────────────────────────────────────────────────
 wb = openpyxl.Workbook()
