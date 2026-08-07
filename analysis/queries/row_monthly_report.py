@@ -47,7 +47,6 @@ try:
     import openpyxl
     from openpyxl.styles import PatternFill, Font, Alignment
     from openpyxl.utils import get_column_letter
-    from openpyxl.cell.rich_text import InlineFont, CellRichText, TextBlock
 except ImportError:
     sys.exit("Missing openpyxl. Run: pip install openpyxl")
 
@@ -344,39 +343,31 @@ def set_cell(ws, row, col, value=None, fill=None, font=None, align=None):
     return c
 
 def rich_cell(ws, row, col, number, yoy_str, fill=None):
-    """Write 'number' bold + ' (yoy_str)' in grey, inline in same cell."""
+    """Write 'number (yoy_str)' as a plain bold string — matches canonical format."""
     c = ws.cell(row=row, column=col)
     if number == 0:
         c.value = "—"
-        c.font  = af(size=9)
+        c.font  = af(size=10)
         c.alignment = ac('center')
         if fill: c.fill = fill
         return c
-    num_str  = f"{number:,}"
-    yoy_part = f" ({yoy_str})"
-    c.value = CellRichText(
-        TextBlock(InlineFont(b=True,  sz=1800), num_str),
-        TextBlock(InlineFont(b=False, sz=1600, color="999999"), yoy_part),
-    )
+    c.value = f"{number:,} ({yoy_str})"
+    c.font  = af(bold=True, size=10)
     c.alignment = ac('center')
     if fill: c.fill = fill
     return c
 
 def dollar_rich(ws, row, col, number, yoy_str, fill=None):
-    """Same as rich_cell but formats number as $xxx,xxx."""
+    """Write '$xxx,xxx (yoy_str)' as a plain bold string."""
     c = ws.cell(row=row, column=col)
     if number == 0:
         c.value = "—"
-        c.font  = af(size=9)
+        c.font  = af(size=10)
         c.alignment = ac('center')
         if fill: c.fill = fill
         return c
-    num_str  = f"${number:,.0f}"
-    yoy_part = f" ({yoy_str})"
-    c.value = CellRichText(
-        TextBlock(InlineFont(b=True,  sz=1800), num_str),
-        TextBlock(InlineFont(b=False, sz=1600, color="999999"), yoy_part),
-    )
+    c.value = f"${number:,.0f} ({yoy_str})"
+    c.font  = af(bold=True, size=10)
     c.alignment = ac('center')
     if fill: c.fill = fill
     return c
