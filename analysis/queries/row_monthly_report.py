@@ -519,7 +519,7 @@ def build_sheet(ws, title,
         ws.row_dimensions[row].height = 20
 
     # ── Column widths ─────────────────────────────────────────────────────────
-    widths = [22, 14, 16, 16, 16, 16, 16, 16, 18]
+    widths = [22, 14, 17, 16, 17, 16, 20, 17, 17]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[get_column_letter(i)].width = w
 
