@@ -81,30 +81,81 @@ if args.ytd:
 bq = bq_client()
 
 # ── ROW DM Region list (ROW only — no US/IN/UK/CA/AU) ────────────────────────
-# Names must match CampaignCountry in themes table AND COMMON_COUNTRY_NAME in salesleads_qt
-# Display name → (themes_country, salesleads_country)
+# Tuple: (display_name, dri, themes_CampaignCountry_key, sl_group_key)
+# For individual countries: sl_group_key = COMMON_COUNTRY_NAME value
+# For regional buckets: sl_group_key = display_name, mapped via SL_REGION_MAP below
 DM_REGIONS = [
-    ("Germany",          "Jude",         "Germany",             "germany"),
-    ("Netherlands",      "Jude",         "Netherlands",         "netherlands"),
-    ("Switzerland",      "Jude",         "Switzerland",         "switzerland"),
-    ("Belgium",          "Jude",         "Belgium",             "belgium"),
-    ("France",           "Kowsik",       "France",              "france"),
-    ("Italy",            "Kowsik",       "Italy",               "italy"),
-    ("United Arab Emirates","Kowsik",    "United Arab Emirates","united arab emirates"),
-    ("Saudi Arabia",     "Kowsik",       "Saudi Arabia",        "saudi arabia"),
-    ("Turkey",           "Kowsik",       "Turkey",              "turkey"),
-    ("Spain",            "Elanthendral", "Spain",               "spain"),
-    ("Brazil",           "Elanthendral", "Brazil",              "brazil"),
-    ("Mexico",           "Elanthendral", "Mexico",              "mexico"),
-    ("Rest Of LATAM",    "Elanthendral", "Region - LATAM",      "rest of latam"),
-    ("South Africa",     "Elanthendral", "South Africa",        "south africa"),
-    ("Israel",           "Elanthendral", "Israel",              "israel"),
-    ("Rest Of Europe",   "Sathish",      "Region - Europe",     "rest of europe"),
-    ("Poland",           "Sathish",      "Poland",              "poland"),
-    ("Rest Of MEA",      "Indhu",        "Region - MEA",        "rest of mea"),
-    ("Rest Of APAC",     "Indhu",        "Region - APAC",       "rest of apac"),
-    ("Singapore",        "Suganesh",     "Singapore",           "singapore"),
+    ("Germany",               "Jude",         "Germany",           "Germany"),
+    ("Netherlands",           "Jude",         "Netherlands",       "Netherlands"),
+    ("Switzerland",           "Jude",         "Switzerland",       "Switzerland"),
+    ("Belgium",               "Jude",         "Belgium",           "Belgium"),
+    ("France",                "Kowsik",       "France",            "France"),
+    ("Italy",                 "Kowsik",       "Italy",             "Italy"),
+    ("United Arab Emirates",  "Kowsik",       "United Arab Emirates","United Arab Emirates"),
+    ("Saudi Arabia",          "Kowsik",       "Saudi Arabia",      "Saudi Arabia"),
+    ("Turkey",                "Kowsik",       "Turkey",            "Turkey"),
+    ("Spain",                 "Elanthendral", "Spain",             "Spain"),
+    ("Brazil",                "Elanthendral", "Brazil",            "Brazil"),
+    ("Mexico",                "Elanthendral", "Mexico",            "Mexico"),
+    ("Rest Of LATAM",         "Elanthendral", "Region - LATAM",    "Rest Of LATAM"),
+    ("South Africa",          "Elanthendral", "South Africa",      "South Africa"),
+    ("Israel",                "Elanthendral", "Israel",            "Israel"),
+    ("Rest Of Europe",        "Sathish",      "Region - Europe",   "Rest Of Europe"),
+    ("Poland",                "Sathish",      "Poland",            "Poland"),
+    ("Rest Of MEA",           "Indhu",        "Region - MEA",      "Rest Of MEA"),
+    ("Rest Of APAC",          "Indhu",        "Region - APAC",     "Rest Of APAC"),
+    ("Singapore",             "Suganesh",     "Singapore",         "Singapore"),
 ]
+
+# ── DM Region CASE expression for salesleads_qt ──────────────────────────────
+# Maps COMMON_COUNTRY_NAME to a DM Region display label matching DM_REGIONS above.
+# Individual countries map 1:1. Regional buckets catch everything else in that geography.
+# Presales markets (US/IN/UK/CA/AU) are excluded via WHEN clause returning NULL → filtered.
+DM_REGION_CASE = """CASE
+  WHEN COMMON_COUNTRY_NAME IN ('United States','India','United Kingdom','Canada','Australia') THEN NULL
+  WHEN COMMON_COUNTRY_NAME = 'Germany'              THEN 'Germany'
+  WHEN COMMON_COUNTRY_NAME = 'Netherlands'          THEN 'Netherlands'
+  WHEN COMMON_COUNTRY_NAME = 'Switzerland'          THEN 'Switzerland'
+  WHEN COMMON_COUNTRY_NAME = 'Belgium'              THEN 'Belgium'
+  WHEN COMMON_COUNTRY_NAME = 'France'               THEN 'France'
+  WHEN COMMON_COUNTRY_NAME = 'Italy'                THEN 'Italy'
+  WHEN COMMON_COUNTRY_NAME = 'United Arab Emirates' THEN 'United Arab Emirates'
+  WHEN COMMON_COUNTRY_NAME = 'Saudi Arabia'         THEN 'Saudi Arabia'
+  WHEN COMMON_COUNTRY_NAME = 'Turkey'               THEN 'Turkey'
+  WHEN COMMON_COUNTRY_NAME = 'Spain'                THEN 'Spain'
+  WHEN COMMON_COUNTRY_NAME = 'Brazil'               THEN 'Brazil'
+  WHEN COMMON_COUNTRY_NAME = 'Mexico'               THEN 'Mexico'
+  WHEN COMMON_COUNTRY_NAME = 'South Africa'         THEN 'South Africa'
+  WHEN COMMON_COUNTRY_NAME = 'Israel'               THEN 'Israel'
+  WHEN COMMON_COUNTRY_NAME = 'Poland'               THEN 'Poland'
+  WHEN COMMON_COUNTRY_NAME = 'Singapore'            THEN 'Singapore'
+  WHEN COMMON_COUNTRY_NAME IN (
+    'Sweden','Norway','Denmark','Finland','Austria','Czech Republic','Hungary',
+    'Romania','Bulgaria','Greece','Portugal','Croatia','Slovakia','Slovenia',
+    'Estonia','Latvia','Lithuania','Luxembourg','Malta','Cyprus','Albania',
+    'Serbia','Bosnia and Herzegovina','North Macedonia','Moldova','Ukraine',
+    'Belarus','Iceland','Ireland','Russia','Kosovo','Montenegro','Andorra','Liechtenstein')
+                                                    THEN 'Rest Of Europe'
+  WHEN COMMON_COUNTRY_NAME IN (
+    'Colombia','Peru','Argentina','Chile','Venezuela','Ecuador','Bolivia','Paraguay',
+    'Uruguay','Costa Rica','Panama','Honduras','Guatemala','El Salvador','Nicaragua',
+    'Puerto Rico','Dominican Republic','Cuba','Trinidad and Tobago','Jamaica',
+    'Belize','Haiti','Guyana','Suriname','Barbados')
+                                                    THEN 'Rest Of LATAM'
+  WHEN COMMON_COUNTRY_NAME IN (
+    'Egypt','Nigeria','Kenya','Morocco','Ghana','Tanzania','Ethiopia','Uganda',
+    'Cameroon','Senegal','Zimbabwe','Zambia','Mozambique','Ivory Coast','Angola',
+    'Algeria','Tunisia','Libya','Sudan','Jordan','Lebanon','Kuwait','Qatar',
+    'Bahrain','Oman','Iraq','Yemen','Pakistan','Rwanda','Botswana')
+                                                    THEN 'Rest Of MEA'
+  WHEN COMMON_COUNTRY_NAME IN (
+    'China','Japan','South Korea','Vietnam','Thailand','Indonesia','Philippines',
+    'Malaysia','Taiwan','Hong Kong','New Zealand','Bangladesh','Sri Lanka',
+    'Myanmar','Cambodia','Nepal','Mongolia','Macao','Brunei','Fiji',
+    'Papua New Guinea','Laos','Timor-Leste')
+                                                    THEN 'Rest Of APAC'
+  ELSE NULL
+END"""
 
 # ── BQ constants ──────────────────────────────────────────────────────────────
 G   = cfg.G
@@ -125,39 +176,59 @@ def idx(rows, key):
     return {r[key]: r for r in rows}
 
 # ── Date filter helper for salesleads_qt ─────────────────────────────────────
-# Created_Time format: "01 Jan 2026 12:00:00" — extract YYYY-MM
-SL_DATE = """FORMAT_DATE('%Y-%m', SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11)))"""
+# Created_Time format: "01 Jan 2026 12:00:00"
+# Year = SUBSTR(Created_Time,8,4), Month abbrev = SUBSTR(Created_Time,4,3)
+# Reconstruct YYYY-MM using a CASE on the 3-letter month abbreviation.
+def _sl_ym_expr():
+    return """CONCAT(
+      SUBSTR(Created_Time,8,4), '-',
+      LPAD(CAST(CASE SUBSTR(Created_Time,4,3)
+        WHEN 'Jan' THEN 1  WHEN 'Feb' THEN 2  WHEN 'Mar' THEN 3
+        WHEN 'Apr' THEN 4  WHEN 'May' THEN 5  WHEN 'Jun' THEN 6
+        WHEN 'Jul' THEN 7  WHEN 'Aug' THEN 8  WHEN 'Sep' THEN 9
+        WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+      END AS STRING), 2, '0'))"""
 
 def sl_date_filter(months):
-    return f"{SL_DATE} IN ({ym_list(months)})"
+    return f"{_sl_ym_expr()} IN ({ym_list(months)})"
 
 # ── Query A: All leads excl E/TP/O (salesleads_qt 4-filter standard) ─────────
-def q_leads_excl(months, salesleads_key='COMMON_COUNTRY_NAME'):
+def q_leads_excl(months):
     return f"""
 SELECT
-  {salesleads_key}                                                  AS country,
+  dm_region                                                         AS country,
   COUNT(DISTINCT Email)                                             AS leads,
   COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
-FROM `{SL}`
-WHERE {sl_date_filter(months)}
-  AND Junk = 'false'
-  AND PRODUCT_GROUP = 'AD_GROUP'
-  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
-  AND isHaveToBeRemoved = 'Non Junk Email'
+FROM (
+  SELECT Email, Conversion,
+    {DM_REGION_CASE} AS dm_region
+  FROM `{SL}`
+  WHERE {sl_date_filter(months)}
+    AND Junk = 'false'
+    AND PRODUCT_GROUP = 'AD_GROUP'
+    AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+    AND isHaveToBeRemoved = 'Non Junk Email'
+)
+WHERE dm_region IS NOT NULL
 GROUP BY 1
 """
 
 # ── Query B: All leads (no User_Type / isHaveToBeRemoved filter) ──────────────
-def q_leads_all(months, salesleads_key='COMMON_COUNTRY_NAME'):
+def q_leads_all(months):
     return f"""
 SELECT
-  {salesleads_key}                                                  AS country,
+  dm_region                                                         AS country,
   COUNT(DISTINCT Email)                                             AS leads,
   COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
-FROM `{SL}`
-WHERE {sl_date_filter(months)}
-  AND Junk = 'false'
-  AND PRODUCT_GROUP = 'AD_GROUP'
+FROM (
+  SELECT Email, Conversion,
+    {DM_REGION_CASE} AS dm_region
+  FROM `{SL}`
+  WHERE {sl_date_filter(months)}
+    AND Junk = 'false'
+    AND PRODUCT_GROUP = 'AD_GROUP'
+)
+WHERE dm_region IS NOT NULL
 GROUP BY 1
 """
 
@@ -197,18 +268,23 @@ GROUP BY 1
 def q_sem_convs(months):
     return f"""
 SELECT
-  LOWER(COMMON_COUNTRY_NAME)                                        AS country_lc,
+  dm_region                                                         AS country,
   COUNT(DISTINCT Email)                                             AS sem_leads,
   COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS sem_convs
-FROM `{SL}`
-WHERE {sl_date_filter(months)}
-  AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
-  AND FIRST_SRC_THEME NOT IN {BRAND}
-  AND (FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
-  AND Junk = 'false'
-  AND PRODUCT_GROUP = 'AD_GROUP'
-  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
-  AND isHaveToBeRemoved = 'Non Junk Email'
+FROM (
+  SELECT Email, Conversion,
+    {DM_REGION_CASE} AS dm_region
+  FROM `{SL}`
+  WHERE {sl_date_filter(months)}
+    AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
+    AND FIRST_SRC_THEME NOT IN {BRAND}
+    AND (FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
+    AND Junk = 'false'
+    AND PRODUCT_GROUP = 'AD_GROUP'
+    AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+    AND isHaveToBeRemoved = 'Non Junk Email'
+)
+WHERE dm_region IS NOT NULL
 GROUP BY 1
 """
 
@@ -219,7 +295,7 @@ def fetch(months, label_str):
     b = idx(run(q_leads_all(months)),       'country')
     c_spend = idx(run(q_sem_spend(months)), 'country')
     c_leads = idx(run(q_sem_leads_themes(months)), 'country')
-    c_convs = idx(run(q_sem_convs(months)), 'country_lc')
+    c_convs = idx(run(q_sem_convs(months)), 'country')   # now returns dm_region as 'country'
     return a, b, c_spend, c_leads, c_convs
 
 print("\nFetching data from BigQuery...")
