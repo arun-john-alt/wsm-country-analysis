@@ -12,31 +12,32 @@ Usage:
 Output:
     Downloads/Monitor/<mon><year>_yoy.xlsx  (e.g. july2026_yoy.xlsx)
 
-Structure:
-    Tab 1 "DM Regions"      — CUR month vs same month prior year
-    Tab 2 "YTD DM Regions"  — Jan–CUR vs prior year same span  (if --ytd)
+Format (matches the canonical july2026_yoy.xlsx):
+    Row 1: Big yellow title spanning all columns e.g. "Jul 2026 (vs Jul '25)"
+    Row 2: Section group headers (pink / light-blue / green)
+    Row 3: Column headers
+    Row 4+: Data rows — YoY% is INLINE in each cell (e.g. "760 (+9%)")
+             green fill >= +10%, pink fill <= -10%, no fill otherwise
+    ROW markets only (US/India/UK/CA/AU excluded — those are presales, not ROW)
 
-Columns per tab:
-    DM Region | DRI | [CUR] All Leads excl E/TP/O | All Convs |
-               [PYR] All Leads excl E/TP/O | All Convs |
-               [CUR] SEM Spend | SEM Leads | SEM Convs |
-               [PYR] SEM Leads | SEM Convs
-
-Data sources (BigQuery project: it-security-online-marketing):
-    • salesleads_qt  → all-channel leads + convs (4-filter standard, Email dedup)
-    • themes_firstlast_semroi → SEM spend + leads
+    3 section groups:
+      [A] All leads except Events, Third Party & Others  — salesleads_qt 4-filter
+          → All Leads (Created date) | All Conversions (Conv. Date)
+      [B] All leads  — salesleads_qt WITHOUT User_Type / isHaveToBeRemoved filters
+          → All Leads (Created date) | All Conversions (Conv. Date)
+      [C] SEM leads  — themes table (Non-Brand, Google+Bing)
+          → SEM Spending (Google USD) | SEM Leads (Created date) | SEM Conversions (Conv. Date)
 
 Hard rules applied (CLAUDE.md):
-    • salesleads_qt: Junk='false', PRODUCT_GROUP='AD_GROUP',
+    Section A salesleads_qt: Junk='false', PRODUCT_GROUP='AD_GROUP',
       User_Type IN ('new','adcs','mecs','inactive customer','inactive lead'),
       isHaveToBeRemoved='Non Junk Email', COUNT(DISTINCT Email)
-    • Brand exclusion (7 variants — ALL must be excluded from SEM leads/spend)
-    • SEM conv filter: FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max')
-    • ELA/LOG360 H1 2026 spend excluded (duplication artifact)
+    Brand exclusion (7 variants)
+    SEM conv filter: FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max')
+    ELA/LOG360 H1 2026 spend excluded (duplication artifact)
 """
 
-import sys, os, argparse
-from datetime import date
+import sys, os, argparse, re
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../wsm-monitor'))
 import wsm_cfg as cfg
@@ -44,30 +45,33 @@ from wsm_cfg import bq_client, shift, label, mon, month_end
 
 try:
     import openpyxl
-    from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+    from openpyxl.styles import PatternFill, Font, Alignment
     from openpyxl.utils import get_column_letter
+    from openpyxl.cell.rich_text import InlineFont, CellRichText, TextBlock
 except ImportError:
     sys.exit("Missing openpyxl. Run: pip install openpyxl")
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 ap = argparse.ArgumentParser()
 ap.add_argument('--month', default=None, help='Target month YYYY-MM (default: from config.yaml)')
-ap.add_argument('--ytd', action='store_true', help='Include YTD tab')
+ap.add_argument('--ytd',   action='store_true', help='Include YTD tab')
 args = ap.parse_args()
 
-CUR  = args.month or cfg.CUR
-PYR  = shift(CUR, -12)
-MON  = mon(CUR)
-YEAR = CUR[:4]
+CUR   = args.month or cfg.CUR
+PYR   = shift(CUR, -12)
+MON   = mon(CUR)
+YEAR  = CUR[:4]
 PYEAR = PYR[:4]
+PYR_SHORT = PYEAR[2:]  # '25' from '2025'
 
 # YTD: Jan through CUR month
 ytd_months_cur = [f"{YEAR}-{m:02d}" for m in range(1, int(CUR[5:7]) + 1)]
 ytd_months_pyr = [shift(ym, -12) for ym in ytd_months_cur]
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                   f"../../{MON.lower()}{YEAR}_yoy.xlsx")
-OUT = os.path.normpath(OUT)
+OUT = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    f"../../{MON.lower()}{YEAR}_yoy.xlsx"
+))
 
 print(f"ROW Monthly Report — {label(CUR)} vs {label(PYR)}")
 print(f"Output: {OUT}")
@@ -76,46 +80,39 @@ if args.ytd:
 
 bq = bq_client()
 
-# ── DM Region → DRI mapping ───────────────────────────────────────────────────
-# Order matters — this is the display order in the Excel
+# ── ROW DM Region list (ROW only — no US/IN/UK/CA/AU) ────────────────────────
+# Names must match CampaignCountry in themes table AND COMMON_COUNTRY_NAME in salesleads_qt
+# Display name → (themes_country, salesleads_country)
 DM_REGIONS = [
-    ("United States",      "Aashiq"),
-    ("India",              "Ajay"),
-    ("United Kingdom",     "Ajay"),
-    ("Canada",             "Ajay"),
-    ("Australia",          "Ajay"),
-    ("Germany",            "Jude"),
-    ("Netherlands",        "Jude"),
-    ("Switzerland",        "Jude"),
-    ("Belgium",            "Jude"),
-    ("France",             "Kowsik"),
-    ("Italy",              "Kowsik"),
-    ("United Arab Emirates","Kowsik"),
-    ("Saudi Arabia",       "Kowsik"),
-    ("Turkey",             "Kowsik"),
-    ("Spain",              "Elanthendral"),
-    ("Brazil",             "Elanthendral"),
-    ("Mexico",             "Elanthendral"),
-    ("Region - LATAM",     "Elanthendral"),
-    ("South Africa",       "Elanthendral"),
-    ("Israel",             "Elanthendral"),
-    ("Region - Europe",    "Sathish"),
-    ("Poland",             "Sathish"),
-    ("Region - MEA",       "Indhu"),
-    ("Region - APAC",      "Indhu"),
-    ("Singapore",          "Suganesh"),
+    ("Germany",          "Jude",         "Germany",             "germany"),
+    ("Netherlands",      "Jude",         "Netherlands",         "netherlands"),
+    ("Switzerland",      "Jude",         "Switzerland",         "switzerland"),
+    ("Belgium",          "Jude",         "Belgium",             "belgium"),
+    ("France",           "Kowsik",       "France",              "france"),
+    ("Italy",            "Kowsik",       "Italy",               "italy"),
+    ("United Arab Emirates","Kowsik",    "United Arab Emirates","united arab emirates"),
+    ("Saudi Arabia",     "Kowsik",       "Saudi Arabia",        "saudi arabia"),
+    ("Turkey",           "Kowsik",       "Turkey",              "turkey"),
+    ("Spain",            "Elanthendral", "Spain",               "spain"),
+    ("Brazil",           "Elanthendral", "Brazil",              "brazil"),
+    ("Mexico",           "Elanthendral", "Mexico",              "mexico"),
+    ("Rest Of LATAM",    "Elanthendral", "Region - LATAM",      "rest of latam"),
+    ("South Africa",     "Elanthendral", "South Africa",        "south africa"),
+    ("Israel",           "Elanthendral", "Israel",              "israel"),
+    ("Rest Of Europe",   "Sathish",      "Region - Europe",     "rest of europe"),
+    ("Poland",           "Sathish",      "Poland",              "poland"),
+    ("Rest Of MEA",      "Indhu",        "Region - MEA",        "rest of mea"),
+    ("Rest Of APAC",     "Indhu",        "Region - APAC",       "rest of apac"),
+    ("Singapore",        "Suganesh",     "Singapore",           "singapore"),
 ]
 
-# Presales countries use FS_PS_Leads / Lead_Type='Mktg(SPL)Leads'
-PRESALES = set(cfg.PRESALES_COUNTRIES)
-
-# ── BQ helpers ────────────────────────────────────────────────────────────────
+# ── BQ constants ──────────────────────────────────────────────────────────────
 G   = cfg.G
 SL  = f"{cfg.PROJ}.sales_presales_leads_no_pi.salesleads_qt"
 ROI = f"{cfg.PROJ}.{G.split('.')[-1]}.themes_firstlast_semroi"
 
-BRAND = "('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')"
-ELA_GROUP = "('ELA','LOG360','LOG360CLOUD')"  # for spend exclusion in H1 2026
+BRAND     = "('Branding','Log360 - Branding','Cloud Branding','cloud branding','ELA - Branding','AD360 - Branding','AD360 Branding')"
+ELA_GROUP = "('ELA','LOG360','LOG360CLOUD')"
 
 def ym_list(months):
     return ", ".join(f"'{m}'" for m in months)
@@ -123,41 +120,26 @@ def ym_list(months):
 def run(sql):
     return list(bq.query(sql).result())
 
-def index_rows(rows, key_cols):
-    """Turn BQ rows into dict keyed by tuple of key_col values."""
-    d = {}
-    for r in rows:
-        k = tuple(r[c] for c in key_cols)
-        d[k] = r
-    return d
+def idx(rows, key):
+    """Index rows by a single key column."""
+    return {r[key]: r for r in rows}
 
-# ── Query 1: All-channel leads + convs from salesleads_qt ─────────────────────
-# Excludes Email/Trial/Other lead types via User_Type filter (standard 4-filter)
-# "All Leads excl E/TP/O" = standard salesleads_qt with 4 filters
+# ── Date filter helper for salesleads_qt ─────────────────────────────────────
+# Created_Time format: "01 Jan 2026 12:00:00" — extract YYYY-MM
+SL_DATE = """FORMAT_DATE('%Y-%m', SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11)))"""
 
-def q_all_leads(months):
-    mlist = ym_list(months)
+def sl_date_filter(months):
+    return f"{SL_DATE} IN ({ym_list(months)})"
+
+# ── Query A: All leads excl E/TP/O (salesleads_qt 4-filter standard) ─────────
+def q_leads_excl(months, salesleads_key='COMMON_COUNTRY_NAME'):
     return f"""
 SELECT
-  COMMON_COUNTRY_NAME                                               AS country,
-  COUNT(DISTINCT Email)                                             AS total_leads,
+  {salesleads_key}                                                  AS country,
+  COUNT(DISTINCT Email)                                             AS leads,
   COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
 FROM `{SL}`
-WHERE SUBSTR(Created_Time,8,4) || '-' ||
-      LPAD(CAST(CASE
-        WHEN SUBSTR(Created_Time,4,3)='Jan' THEN 1
-        WHEN SUBSTR(Created_Time,4,3)='Feb' THEN 2
-        WHEN SUBSTR(Created_Time,4,3)='Mar' THEN 3
-        WHEN SUBSTR(Created_Time,4,3)='Apr' THEN 4
-        WHEN SUBSTR(Created_Time,4,3)='May' THEN 5
-        WHEN SUBSTR(Created_Time,4,3)='Jun' THEN 6
-        WHEN SUBSTR(Created_Time,4,3)='Jul' THEN 7
-        WHEN SUBSTR(Created_Time,4,3)='Aug' THEN 8
-        WHEN SUBSTR(Created_Time,4,3)='Sep' THEN 9
-        WHEN SUBSTR(Created_Time,4,3)='Oct' THEN 10
-        WHEN SUBSTR(Created_Time,4,3)='Nov' THEN 11
-        WHEN SUBSTR(Created_Time,4,3)='Dec' THEN 12
-      END AS STRING), 2, '0') IN ({mlist})
+WHERE {sl_date_filter(months)}
   AND Junk = 'false'
   AND PRODUCT_GROUP = 'AD_GROUP'
   AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
@@ -165,72 +147,61 @@ WHERE SUBSTR(Created_Time,8,4) || '-' ||
 GROUP BY 1
 """
 
-# ── Query 2: SEM spend from themes (Non-Brand, excl ELA H1 2026 duplication) ──
+# ── Query B: All leads (no User_Type / isHaveToBeRemoved filter) ──────────────
+def q_leads_all(months, salesleads_key='COMMON_COUNTRY_NAME'):
+    return f"""
+SELECT
+  {salesleads_key}                                                  AS country,
+  COUNT(DISTINCT Email)                                             AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
+FROM `{SL}`
+WHERE {sl_date_filter(months)}
+  AND Junk = 'false'
+  AND PRODUCT_GROUP = 'AD_GROUP'
+GROUP BY 1
+"""
 
+# ── Query C: SEM spend (themes, Non-Brand) ────────────────────────────────────
 def q_sem_spend(months):
-    mlist = ym_list(months)
-    # H1 2026 ELA/LOG360 spend exclusion: months in ['2026-01'..'2026-06']
-    h1_months = [m for m in months if '2026-01' <= m <= '2026-06']
-    ela_excl = ""
-    if h1_months:
-        ela_excl = f"AND NOT (Product IN {ELA_GROUP} AND SUBSTR(Date,1,7) IN ({ym_list(h1_months)}))"
+    h1 = [m for m in months if '2026-01' <= m <= '2026-06']
+    ela_excl = (f"AND NOT (Product IN {ELA_GROUP} AND SUBSTR(Date,1,7) IN ({ym_list(h1)}))"
+                if h1 else "")
     return f"""
 SELECT
   CampaignCountry                                                   AS country,
   ROUND(SUM(Cost), 0)                                               AS spend_usd
 FROM `{ROI}`
-WHERE SUBSTR(Date,1,7) IN ({mlist})
+WHERE SUBSTR(Date,1,7) IN ({ym_list(months)})
   AND Theme NOT IN {BRAND}
   AND COALESCE(Source_Medium, Source___Medium) IN ('google / cpc','bing / cpc')
   {ela_excl}
 GROUP BY 1
 """
 
-# ── Query 3: SEM leads from themes (Non-Brand, all countries) ─────────────────
-
-def q_sem_leads(months):
-    mlist = ym_list(months)
-    # Use FS_PS_Leads for presales, Valid_Sales_Leads_First_Source for others
-    presales_list = ", ".join(f"'{c}'" for c in PRESALES)
+# ── Query C: SEM leads (themes, Non-Brand) ────────────────────────────────────
+def q_sem_leads_themes(months):
+    # ROW markets all use Valid_Sales_Leads_First_Source / Lead_Type='All Leads'
     return f"""
 SELECT
   CampaignCountry                                                   AS country,
-  ROUND(SUM(
-    IF(CampaignCountry IN ({presales_list}), FS_PS_Leads, Valid_Sales_Leads_First_Source)
-  ))                                                                AS sem_leads
+  ROUND(SUM(Valid_Sales_Leads_First_Source))                        AS sem_leads
 FROM `{ROI}`
-WHERE SUBSTR(Date,1,7) IN ({mlist})
+WHERE SUBSTR(Date,1,7) IN ({ym_list(months)})
   AND Theme NOT IN {BRAND}
   AND COALESCE(Source_Medium, Source___Medium) IN ('google / cpc','bing / cpc')
-  AND Lead_Type = IF(CampaignCountry IN ({presales_list}), 'Mktg(SPL)Leads', 'All Leads')
+  AND Lead_Type = 'All Leads'
 GROUP BY 1
 """
 
-# ── Query 4: SEM convs from salesleads_qt (Non-Brand, Search only) ───────────
-
+# ── Query C: SEM convs (salesleads_qt, Non-Brand, Search only) ───────────────
 def q_sem_convs(months):
-    mlist = ym_list(months)
     return f"""
 SELECT
-  COMMON_COUNTRY_NAME                                               AS country,
+  LOWER(COMMON_COUNTRY_NAME)                                        AS country_lc,
   COUNT(DISTINCT Email)                                             AS sem_leads,
   COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS sem_convs
 FROM `{SL}`
-WHERE SUBSTR(Created_Time,8,4) || '-' ||
-      LPAD(CAST(CASE
-        WHEN SUBSTR(Created_Time,4,3)='Jan' THEN 1
-        WHEN SUBSTR(Created_Time,4,3)='Feb' THEN 2
-        WHEN SUBSTR(Created_Time,4,3)='Mar' THEN 3
-        WHEN SUBSTR(Created_Time,4,3)='Apr' THEN 4
-        WHEN SUBSTR(Created_Time,4,3)='May' THEN 5
-        WHEN SUBSTR(Created_Time,4,3)='Jun' THEN 6
-        WHEN SUBSTR(Created_Time,4,3)='Jul' THEN 7
-        WHEN SUBSTR(Created_Time,4,3)='Aug' THEN 8
-        WHEN SUBSTR(Created_Time,4,3)='Sep' THEN 9
-        WHEN SUBSTR(Created_Time,4,3)='Oct' THEN 10
-        WHEN SUBSTR(Created_Time,4,3)='Nov' THEN 11
-        WHEN SUBSTR(Created_Time,4,3)='Dec' THEN 12
-      END AS STRING), 2, '0') IN ({mlist})
+WHERE {sl_date_filter(months)}
   AND FIRST_SRC_GRP IN ('google / cpc','bing / cpc')
   AND FIRST_SRC_THEME NOT IN {BRAND}
   AND (FIRST_SRC_CAMPAIGN_TYPE NOT IN ('Display','Performance Max') OR FIRST_SRC_CAMPAIGN_TYPE IS NULL)
@@ -241,162 +212,216 @@ WHERE SUBSTR(Created_Time,8,4) || '-' ||
 GROUP BY 1
 """
 
-# ── Fetch data ─────────────────────────────────────────────────────────────────
+# ── Fetch all data ─────────────────────────────────────────────────────────────
+def fetch(months, label_str):
+    print(f"  Fetching {label_str}...")
+    a = idx(run(q_leads_excl(months)),      'country')
+    b = idx(run(q_leads_all(months)),       'country')
+    c_spend = idx(run(q_sem_spend(months)), 'country')
+    c_leads = idx(run(q_sem_leads_themes(months)), 'country')
+    c_convs = idx(run(q_sem_convs(months)), 'country_lc')
+    return a, b, c_spend, c_leads, c_convs
+
 print("\nFetching data from BigQuery...")
+cur_a, cur_b, cur_spend, cur_csl, cur_csc = fetch([CUR], label(CUR))
+pyr_a, pyr_b, pyr_spend, pyr_csl, pyr_csc = fetch([PYR], label(PYR))
 
-# Current month
-print(f"  [1/8] All-channel leads {label(CUR)}...")
-cur_leads  = index_rows(run(q_all_leads([CUR])),  ['country'])
-print(f"  [2/8] SEM spend {label(CUR)}...")
-cur_spend  = index_rows(run(q_sem_spend([CUR])),  ['country'])
-print(f"  [3/8] SEM leads (themes) {label(CUR)}...")
-cur_sl     = index_rows(run(q_sem_leads([CUR])),  ['country'])
-print(f"  [4/8] SEM convs {label(CUR)}...")
-cur_convs  = index_rows(run(q_sem_convs([CUR])),  ['country'])
-
-# Prior year same month
-print(f"  [5/8] All-channel leads {label(PYR)}...")
-pyr_leads  = index_rows(run(q_all_leads([PYR])),  ['country'])
-print(f"  [6/8] SEM leads (themes) {label(PYR)}...")
-pyr_sl     = index_rows(run(q_sem_leads([PYR])),  ['country'])
-print(f"  [7/8] SEM spend {label(PYR)}...")
-pyr_spend  = index_rows(run(q_sem_spend([PYR])),  ['country'])
-print(f"  [8/8] SEM convs {label(PYR)}...")
-pyr_convs  = index_rows(run(q_sem_convs([PYR])),  ['country'])
-
-# YTD data (optional)
-ytd_cur_leads = ytd_cur_spend = ytd_cur_sl = ytd_cur_convs = {}
-ytd_pyr_leads = ytd_pyr_spend = ytd_pyr_sl = ytd_pyr_convs = {}
 if args.ytd:
-    print(f"\nFetching YTD data (Jan–{MON} {YEAR} vs Jan–{mon(PYR)} {PYEAR})...")
-    ytd_cur_leads = index_rows(run(q_all_leads(ytd_months_cur)),  ['country'])
-    ytd_cur_spend = index_rows(run(q_sem_spend(ytd_months_cur)), ['country'])
-    ytd_cur_sl    = index_rows(run(q_sem_leads(ytd_months_cur)), ['country'])
-    ytd_cur_convs = index_rows(run(q_sem_convs(ytd_months_cur)), ['country'])
-    ytd_pyr_leads = index_rows(run(q_all_leads(ytd_months_pyr)),  ['country'])
-    ytd_pyr_spend = index_rows(run(q_sem_spend(ytd_months_pyr)), ['country'])
-    ytd_pyr_sl    = index_rows(run(q_sem_leads(ytd_months_pyr)), ['country'])
-    ytd_pyr_convs = index_rows(run(q_sem_convs(ytd_months_pyr)), ['country'])
+    ytd_cur_a, ytd_cur_b, ytd_cur_spend, ytd_cur_csl, ytd_cur_csc = fetch(ytd_months_cur, f"YTD {YEAR}")
+    ytd_pyr_a, ytd_pyr_b, ytd_pyr_spend, ytd_pyr_csl, ytd_pyr_csc = fetch(ytd_months_pyr, f"YTD {PYEAR}")
 
-print("Done fetching.\n")
+print("Done.\n")
 
-# ── Excel helpers ──────────────────────────────────────────────────────────────
-def v(d, country, col, default=0):
-    """Safe value lookup."""
-    k = (country,)
-    if k not in d: return default
-    val = d[k][col]
-    return int(val) if val is not None else default
+# ── Value helpers ─────────────────────────────────────────────────────────────
+def gv(d, key, col, default=0):
+    r = d.get(key)
+    if r is None: return default
+    v = r[col]
+    return int(v) if v is not None else default
 
-def pct_str(cur, pyr):
-    """YoY % string: +12% or -5%"""
-    if not pyr: return "—"
+def yoy_pct(cur, pyr):
+    """Returns (float pct or None, str '+12%' or '—')"""
+    if not pyr: return None, "—"
     p = (cur - pyr) / pyr * 100
-    return f"{'+' if p >= 0 else ''}{p:.0f}%"
+    return p, f"{'+' if p >= 0 else ''}{p:.0f}%"
 
-# Styles
-YELLOW  = PatternFill("solid", fgColor="FFD700")
-PINK    = PatternFill("solid", fgColor="FFB6C1")
-LBLUE   = PatternFill("solid", fgColor="ADD8E6")
-GREEN_H = PatternFill("solid", fgColor="92D050")  # header green
-GREEN_F = PatternFill("solid", fgColor="C6EFCE")  # data green (≥+10%)
-RED_F   = PatternFill("solid", fgColor="FFC7CE")  # data red (≤-10%)
-GREY    = PatternFill("solid", fgColor="F2F2F2")
+# ── Excel styles ──────────────────────────────────────────────────────────────
+YELLOW   = PatternFill("solid", fgColor="FFD700")
+PINK_H   = PatternFill("solid", fgColor="F4CCCC")   # section header pink
+LBLUE_H  = PatternFill("solid", fgColor="CFE2F3")   # section header light blue
+GREEN_H  = PatternFill("solid", fgColor="B6D7A8")   # section header green
+GREEN_D  = PatternFill("solid", fgColor="D9EAD3")   # data cell green (good YoY)
+PINK_D   = PatternFill("solid", fgColor="FCE8E6")   # data cell pink (bad YoY)
+COL_HDR  = PatternFill("solid", fgColor="EFEFEF")   # column header grey
 
-BOLD    = Font(bold=True)
-BOLD_SM = Font(bold=True, size=9)
-SM      = Font(size=9)
+def af(bold=False, size=10, color="000000", italic=False):
+    return Font(bold=bold, size=size, color=color, italic=italic)
 
-def hdr(ws, row, col, val, fill=None, bold=True, align='center', wrap=False):
-    c = ws.cell(row=row, column=col, value=val)
-    if fill: c.fill = fill
-    c.font = Font(bold=bold)
-    c.alignment = Alignment(horizontal=align, vertical='center', wrap_text=wrap)
+def ac(h='center', v='center', wrap=False):
+    return Alignment(horizontal=h, vertical=v, wrap_text=wrap)
+
+def set_cell(ws, row, col, value=None, fill=None, font=None, align=None):
+    c = ws.cell(row=row, column=col, value=value)
+    if fill:  c.fill  = fill
+    if font:  c.font  = font
+    if align: c.alignment = align
     return c
 
-def cell(ws, row, col, val, fill=None, align='right', fmt=None, color_rule=None):
-    c = ws.cell(row=row, column=col, value=val)
-    c.font = SM
-    c.alignment = Alignment(horizontal=align)
+def rich_cell(ws, row, col, number, yoy_str, fill=None):
+    """Write 'number' bold + ' (yoy_str)' in grey, inline in same cell."""
+    c = ws.cell(row=row, column=col)
+    if number == 0:
+        c.value = "—"
+        c.font  = af(size=9)
+        c.alignment = ac('center')
+        if fill: c.fill = fill
+        return c
+    num_str  = f"{number:,}"
+    yoy_part = f" ({yoy_str})"
+    c.value = CellRichText(
+        TextBlock(InlineFont(b=True,  sz=1800), num_str),
+        TextBlock(InlineFont(b=False, sz=1600, color="999999"), yoy_part),
+    )
+    c.alignment = ac('center')
     if fill: c.fill = fill
-    if fmt:  c.number_format = fmt
-    if color_rule is not None and isinstance(val, (int, float)):
-        if color_rule >= 10:   c.fill = GREEN_F
-        elif color_rule <= -10: c.fill = RED_F
     return c
 
-# ── Build a sheet ──────────────────────────────────────────────────────────────
-def build_sheet(ws, period_label_cur, period_label_pyr,
-                leads_cur, spend_cur, sl_cur, convs_cur,
-                leads_pyr, spend_pyr, sl_pyr, convs_pyr):
+def dollar_rich(ws, row, col, number, yoy_str, fill=None):
+    """Same as rich_cell but formats number as $xxx,xxx."""
+    c = ws.cell(row=row, column=col)
+    if number == 0:
+        c.value = "—"
+        c.font  = af(size=9)
+        c.alignment = ac('center')
+        if fill: c.fill = fill
+        return c
+    num_str  = f"${number:,.0f}"
+    yoy_part = f" ({yoy_str})"
+    c.value = CellRichText(
+        TextBlock(InlineFont(b=True,  sz=1800), num_str),
+        TextBlock(InlineFont(b=False, sz=1600, color="999999"), yoy_part),
+    )
+    c.alignment = ac('center')
+    if fill: c.fill = fill
+    return c
 
-    # Row 1 — period header
-    ws.merge_cells('A1:B1'); hdr(ws, 1, 1, "DM Region / DRI", fill=YELLOW)
-    ws.merge_cells('C1:D1'); hdr(ws, 1, 3, period_label_cur, fill=YELLOW)
-    ws.merge_cells('E1:F1'); hdr(ws, 1, 5, period_label_pyr, fill=YELLOW)
-    ws.merge_cells('G1:I1'); hdr(ws, 1, 7, f"SEM — {period_label_cur}", fill=GREEN_H)
-    ws.merge_cells('J1:L1'); hdr(ws, 1, 10, f"SEM — {period_label_pyr}", fill=GREEN_H)
+# ── Build a single worksheet ──────────────────────────────────────────────────
+def build_sheet(ws, title,
+                cur_a, cur_b, cur_spend, cur_csl, cur_csc,
+                pyr_a, pyr_b, pyr_spend, pyr_csl, pyr_csc):
 
-    # Row 2 — column headers
-    headers = [
-        (1, "DM Region", GREY),
-        (2, "DRI", GREY),
-        (3, "All Leads\nexcl E/TP/O", PINK),
-        (4, "All Convs", PINK),
-        (5, "All Leads\nexcl E/TP/O", LBLUE),
-        (6, "All Convs", LBLUE),
-        (7, "Spend (USD)", GREEN_H),
-        (8, "SEM Leads\n(themes)", GREEN_H),
-        (9, "SEM Convs\n(salesleads)", GREEN_H),
-        (10, "SEM Leads\n(themes)", GREEN_H),
-        (11, "SEM Convs\n(salesleads)", GREEN_H),
-        (12, "Leads YoY%", GREY),
+    # ── Row 1: big title ──────────────────────────────────────────────────────
+    ws.merge_cells('A1:I1')
+    t = ws.cell(row=1, column=1, value=title)
+    t.fill = YELLOW
+    t.font = af(bold=True, size=14)
+    t.alignment = ac('center')
+    ws.row_dimensions[1].height = 28
+
+    # ── Row 2: section group headers ─────────────────────────────────────────
+    ws.merge_cells('A2:B2')  # blank spacer
+    ws.cell(row=2, column=1).fill = YELLOW
+
+    ws.merge_cells('C2:D2')
+    s1 = ws.cell(row=2, column=3, value="All leads except Events, Third Party & Others")
+    s1.fill = PINK_H; s1.font = af(bold=True, size=10); s1.alignment = ac('center')
+
+    ws.merge_cells('E2:F2')
+    s2 = ws.cell(row=2, column=5, value="All leads")
+    s2.fill = LBLUE_H; s2.font = af(bold=True, size=10); s2.alignment = ac('center')
+
+    ws.merge_cells('G2:I2')
+    s3 = ws.cell(row=2, column=7, value="SEM leads")
+    s3.fill = GREEN_H; s3.font = af(bold=True, size=10); s3.alignment = ac('center')
+    ws.row_dimensions[2].height = 22
+
+    # ── Row 3: column headers ─────────────────────────────────────────────────
+    COL_DEFS = [
+        (1, "DM Region",                    COL_HDR),
+        (2, "DRI",                          COL_HDR),
+        (3, "All Leads\n(Created date)",    PINK_H),
+        (4, "All Conversions\n(Conv. Date)",PINK_H),
+        (5, "All Leads\n(Created date)",    LBLUE_H),
+        (6, "All Conversions\n(Conv. Date)",LBLUE_H),
+        (7, "SEM Spending\n(Google USD)",   GREEN_H),
+        (8, "SEM Leads\n(Created date)",    GREEN_H),
+        (9, "SEM Conversions\n(Conv. Date)",GREEN_H),
     ]
-    for col, title, fill in headers:
-        c = ws.cell(row=2, column=col, value=title)
-        c.fill = fill; c.font = Font(bold=True, size=9)
-        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    for col, title_h, fill in COL_DEFS:
+        c = ws.cell(row=3, column=col, value=title_h)
+        c.fill = fill
+        c.font = af(bold=True, size=9)
+        c.alignment = ac('center', wrap=True)
+    ws.row_dimensions[3].height = 32
 
-    # Data rows
-    row = 3
-    for country, dri in DM_REGIONS:
-        cl  = v(leads_cur, country, 'total_leads')
-        cc  = v(leads_cur, country, 'convs')
-        pl  = v(leads_pyr, country, 'total_leads')
-        pc  = v(leads_pyr, country, 'convs')
-        cs  = v(spend_cur, country, 'spend_usd')
-        csl = v(sl_cur,    country, 'sem_leads')
-        csc = v(convs_cur, country, 'sem_leads')   # SEM leads from salesleads_qt
-        ccc = v(convs_cur, country, 'sem_convs')
-        psl = v(sl_pyr,    country, 'sem_leads')
-        pcc = v(convs_pyr, country, 'sem_leads')
-        pccc= v(convs_pyr, country, 'sem_convs')
+    # ── Data rows ─────────────────────────────────────────────────────────────
+    for i, (display, dri, themes_key, sl_key) in enumerate(DM_REGIONS):
+        row = i + 4
 
-        # YoY % for color rules
-        yoy_pct = ((cl - pl) / pl * 100) if pl else None
+        # Section A — excl E/TP/O
+        al_c = gv(cur_a, display, 'leads')
+        al_p = gv(pyr_a, display, 'leads')
+        ac_c = gv(cur_a, display, 'convs')
+        ac_p = gv(pyr_a, display, 'convs')
 
-        fill_row = GREY if row % 2 == 0 else None
-        cell(ws, row, 1, country,  fill=fill_row, align='left')
-        cell(ws, row, 2, dri,      fill=fill_row, align='left')
-        cell(ws, row, 3, cl or None, fill=PINK, fmt='#,##0', color_rule=yoy_pct)
-        cell(ws, row, 4, cc or None, fill=PINK, fmt='#,##0')
-        cell(ws, row, 5, pl or None, fill=LBLUE, fmt='#,##0')
-        cell(ws, row, 6, pc or None, fill=LBLUE, fmt='#,##0')
-        cell(ws, row, 7, cs or None, fmt='$#,##0')
-        cell(ws, row, 8, csl or None, fmt='#,##0', color_rule=yoy_pct)
-        cell(ws, row, 9, ccc or None, fmt='#,##0')
-        cell(ws, row, 10, psl or None, fmt='#,##0')
-        cell(ws, row, 11, pccc or None, fmt='#,##0')
-        cell(ws, row, 12, pct_str(cl, pl) if pl else "—", align='center')
-        row += 1
+        # Section B — all leads
+        bl_c = gv(cur_b, display, 'leads')
+        bl_p = gv(pyr_b, display, 'leads')
+        bc_c = gv(cur_b, display, 'convs')
+        bc_p = gv(pyr_b, display, 'convs')
 
-    # Column widths
-    widths = [22, 14, 14, 10, 14, 10, 12, 14, 14, 14, 14, 10]
+        # Section C — SEM
+        sp_c = gv(cur_spend, themes_key, 'spend_usd')
+        sp_p = gv(pyr_spend, themes_key, 'spend_usd')
+        sl_c = gv(cur_csl,   themes_key, 'sem_leads')
+        sl_p = gv(pyr_csl,   themes_key, 'sem_leads')
+        sc_c = gv(cur_csc,   sl_key,     'sem_convs')
+        sc_p = gv(pyr_csc,   sl_key,     'sem_convs')
+
+        # YoY pcts
+        al_pct, al_str = yoy_pct(al_c, al_p)
+        ac_pct, ac_str = yoy_pct(ac_c, ac_p)
+        bl_pct, bl_str = yoy_pct(bl_c, bl_p)
+        bc_pct, bc_str = yoy_pct(bc_c, bc_p)
+        sp_pct, sp_str = yoy_pct(sp_c, sp_p)
+        sl_pct, sl_str = yoy_pct(sl_c, sl_p)
+        sc_pct, sc_str = yoy_pct(sc_c, sc_p)
+
+        def fill_for(pct, section):
+            if pct is None: return section
+            if pct >= 10: return GREEN_D
+            if pct <= -10: return PINK_D
+            return section  # no change = same as section colour
+
+        # Col A — DM Region (bold)
+        c = ws.cell(row=row, column=1, value=display)
+        c.font = af(bold=True, size=10); c.alignment = ac('left', 'center')
+
+        # Col B — DRI
+        c = ws.cell(row=row, column=2, value=dri)
+        c.font = af(size=10); c.alignment = ac('left', 'center')
+
+        # Cols C–D — Section A (excl E/TP/O)
+        rich_cell(ws, row, 3, al_c, al_str, fill=fill_for(al_pct, PINK_H))
+        rich_cell(ws, row, 4, ac_c, ac_str, fill=fill_for(ac_pct, PINK_H))
+
+        # Cols E–F — Section B (all leads)
+        rich_cell(ws, row, 5, bl_c, bl_str, fill=fill_for(bl_pct, LBLUE_H))
+        rich_cell(ws, row, 6, bc_c, bc_str, fill=fill_for(bc_pct, LBLUE_H))
+
+        # Cols G–I — Section C (SEM)
+        dollar_rich(ws, row, 7, sp_c, sp_str, fill=fill_for(sp_pct, GREEN_H))
+        rich_cell(ws,  row, 8, sl_c, sl_str, fill=fill_for(sl_pct, GREEN_H))
+        rich_cell(ws,  row, 9, sc_c, sc_str, fill=fill_for(sc_pct, GREEN_H))
+
+        ws.row_dimensions[row].height = 20
+
+    # ── Column widths ─────────────────────────────────────────────────────────
+    widths = [22, 14, 16, 16, 16, 16, 16, 16, 18]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[get_column_letter(i)].width = w
-    ws.row_dimensions[1].height = 18
-    ws.row_dimensions[2].height = 30
-    ws.freeze_panes = 'C3'
+
+    ws.freeze_panes = 'C4'
 
 # ── Build workbook ─────────────────────────────────────────────────────────────
 wb = openpyxl.Workbook()
@@ -404,30 +429,25 @@ wb = openpyxl.Workbook()
 # Tab 1 — Monthly
 ws1 = wb.active
 ws1.title = "DM Regions"
-build_sheet(
-    ws1,
-    f"{MON} {YEAR}", f"{MON} {PYEAR}",
-    cur_leads, cur_spend, cur_sl, cur_convs,
-    pyr_leads, pyr_spend, pyr_sl, pyr_convs,
-)
-print(f"✅ Tab 'DM Regions' built ({label(CUR)} vs {label(PYR)})")
+month_title = f"{MON} {YEAR}  (vs {MON} '{PYR_SHORT})"
+build_sheet(ws1, month_title,
+            cur_a, cur_b, cur_spend, cur_csl, cur_csc,
+            pyr_a, pyr_b, pyr_spend, pyr_csl, pyr_csc)
+print(f"✅ Tab 'DM Regions' — {month_title}")
 
-# Tab 2 — YTD (optional)
+# Tab 2 — YTD
 if args.ytd:
     ws2 = wb.create_sheet("YTD DM Regions")
-    ytd_label_cur = f"Jan–{MON} {YEAR}"
-    ytd_label_pyr = f"Jan–{mon(PYR)} {PYEAR}"
-    build_sheet(
-        ws2,
-        ytd_label_cur, ytd_label_pyr,
-        ytd_cur_leads, ytd_cur_spend, ytd_cur_sl, ytd_cur_convs,
-        ytd_pyr_leads, ytd_pyr_spend, ytd_pyr_sl, ytd_pyr_convs,
-    )
-    print(f"✅ Tab 'YTD DM Regions' built ({ytd_label_cur} vs {ytd_label_pyr})")
+    ytd_title = f"Jan–{MON} {YEAR}  (vs Jan–{mon(PYR)} '{PYR_SHORT})"
+    build_sheet(ws2, ytd_title,
+                ytd_cur_a, ytd_cur_b, ytd_cur_spend, ytd_cur_csl, ytd_cur_csc,
+                ytd_pyr_a, ytd_pyr_b, ytd_pyr_spend, ytd_pyr_csl, ytd_pyr_csc)
+    print(f"✅ Tab 'YTD DM Regions' — {ytd_title}")
 
 wb.save(OUT)
 print(f"\n📊 Saved: {OUT}")
-print("   Green cells = ≥+10% YoY leads | Red cells = ≤-10% YoY leads")
-print("\nNote: ELA/LOG360/LOG360CLOUD spend excluded for H1 2026 months (duplication artifact).")
-print("      SEM Leads column uses themes table (Valid_Sales_Leads / FS_PS_Leads by market).")
-print("      SEM Convs column uses salesleads_qt (Email dedup, Search only, no PMax/Display).")
+print("   Green cell = ≥+10% YoY  |  Pink cell = ≤-10% YoY  |  Inline grey = YoY%")
+print("   Section A (pink)  = salesleads_qt 4-filter (excl existing customers/leads/junk email)")
+print("   Section B (blue)  = salesleads_qt Junk+AD_GROUP only (all leads)")
+print("   Section C (green) = themes table SEM Non-Brand (Google+Bing, excl PMax/Display)")
+print("   ELA/LOG360 H1 2026 spend excluded (duplication artifact in themes table)")

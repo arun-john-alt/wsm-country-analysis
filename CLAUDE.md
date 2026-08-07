@@ -36,3 +36,35 @@ When asked to analyse any country for SEM:
 - ELA group H1 2026 spend: EXCLUDE from `SUM(Cost)` — Log360 spend is duplicated in the themes table for H1 2026. Show ELA/LOG360/LOG360CLOUD H1 2026 CPL and Spend as `—` with footnote `†ELA/LOG360/LOG360CLOUD spend excluded in H1 2026 — duplicate attribution in themes data`. 2024 and 2025 spend is clean and reportable.
 - Channel attribution uses TWO columns — always report both: `FIRST_SRC_GRP` (salesleads_qt) for full-funnel channel mix (Q13); `NEW_TRAFFIC_SRC_GRP` (salesleads_qt) for the new grouping view (Q17). Both are required in every country report. Q17 section goes immediately before the footer.
 - Q17 template (copy verbatim for every new country, change COUNTRY_SL only): `SELECT {YR_SL} AS yr, NEW_TRAFFIC_SRC_GRP, COUNT(DISTINCT Email) AS total_leads, COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS convs FROM \`{SL}\` WHERE LOWER(COMMON_COUNTRY_NAME) = '{COUNTRY_SL}' AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP' AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead') AND isHaveToBeRemoved = 'Non Junk Email' AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026') GROUP BY 1, 2 HAVING yr != 'other' ORDER BY NEW_TRAFFIC_SRC_GRP, yr`
+
+## ROW Monthly Report (trigger: "ROW monthly report" or "trigger the monthly report")
+
+Script: `analysis/queries/row_monthly_report.py`
+
+Run command:
+```
+python3 analysis/queries/row_monthly_report.py --month YYYY-MM --ytd
+```
+- `--month`: target month (e.g. `2026-07`). Defaults to `run.month` in `wsm-monitor/config.yaml` — update that first.
+- `--ytd`: adds a second tab for Jan–CUR vs prior year. Always include it.
+
+Before running: update `wsm-monitor/config.yaml` → `run.month` to the target month.
+Also run freshness check first: `python3 wsm-monitor/check_freshness.py monthly`
+
+Output file: `<mon><year>_yoy.xlsx` in the repo root (gitignored — share via Drive).
+
+Format (canonical — do not change without updating the script):
+- Row 1: Big yellow title "Jul 2026 (vs Jul '25)"
+- Row 2: 3 section group headers — pink / light-blue / green
+- Row 3: Column headers
+- Row 4+: Data rows. YoY% is INLINE in each cell (bold number + grey %). Green fill ≥+10%, pink fill ≤-10%.
+- ROW markets only (US, India, UK, Canada, Australia are presales — NOT included)
+
+3 data sections:
+  [A] Pink  — All leads except Events/Third Party/Others: salesleads_qt with full 4-filter standard
+  [B] Blue  — All leads: salesleads_qt with Junk='false' + PRODUCT_GROUP='AD_GROUP' only
+  [C] Green — SEM leads: themes table (Non-Brand, Google+Bing SEM spend/leads; salesleads_qt SEM convs)
+
+DM Region display names and order (must match exactly):
+Germany, Netherlands, Switzerland, Belgium, France, Italy, United Arab Emirates, Saudi Arabia, Turkey,
+Spain, Brazil, Mexico, Rest Of LATAM, South Africa, Israel, Rest Of Europe, Poland, Rest Of MEA, Rest Of APAC, Singapore
