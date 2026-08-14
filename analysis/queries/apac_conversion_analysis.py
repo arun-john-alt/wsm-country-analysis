@@ -233,8 +233,8 @@ ws.row_dimensions[1].height = 28
 ws.row_dimensions[2].height = 8
 
 # Row 3: Column headers
-cell(ws, 3, 1, "Year",   fill=NAVY, bold=True, size=10, color="FFFFFF")
-cell(ws, 3, 2, "Metric", fill=NAVY, bold=True, size=10, color="FFFFFF")
+cell(ws, 3, 1, "Metric", fill=NAVY, bold=True, size=10, color="FFFFFF")
+cell(ws, 3, 2, "Year",   fill=NAVY, bold=True, size=10, color="FFFFFF")
 for ci, country in enumerate(ALL_COLS):
     is_total = country == 'APAC Total'
     f = NAVY if is_total else LGREY
@@ -242,7 +242,8 @@ for ci, country in enumerate(ALL_COLS):
     cell(ws, 3, 3 + ci, country, fill=f, bold=True, size=10, color=txt_color, wrap=True)
 ws.row_dimensions[3].height = 30
 
-# Data rows: 3 years × 4 metrics = 12 data rows + 2 separator rows
+# Data rows: Metric as outer group, Years as inner
+# Order: Leads (2024/25/26), 30d (2024/25/26), 60d (2024/25/26), 90d (2024/25/26)
 METRICS = [
     ('Leads',     'leads'),
     ('30d Convs', 'c30'),
@@ -251,20 +252,21 @@ METRICS = [
 ]
 
 data_row = 4
-for yi, yr in enumerate(YEARS):
-    yr_fill = YEAR_FILLS[yr]
-    yr_label = YEAR_LABELS[yr]
+for mi, (metric_label, metric_key) in enumerate(METRICS):
 
-    # Merge year label across 4 metric rows
-    yr_start = data_row
-    yr_end   = data_row + len(METRICS) - 1
-    ws.merge_cells(f'A{yr_start}:A{yr_end}')
-    cell(ws, yr_start, 1, yr_label, fill=yr_fill, bold=True, size=11)
+    # Merge metric label across 3 year rows
+    m_start = data_row
+    m_end   = data_row + len(YEARS) - 1
+    ws.merge_cells(f'A{m_start}:A{m_end}')
+    cell(ws, m_start, 1, metric_label, fill=NAVY, bold=True, size=11, color="FFFFFF")
 
-    for mi, (metric_label, metric_key) in enumerate(METRICS):
-        row = data_row + mi
-        # Metric label
-        cell(ws, row, 2, metric_label, fill=yr_fill, bold=False, size=10)
+    for yi, yr in enumerate(YEARS):
+        row = data_row + yi
+        yr_fill = YEAR_FILLS[yr]
+        yr_label = YEAR_LABELS[yr]
+
+        # Year label
+        cell(ws, row, 2, yr_label, fill=yr_fill, bold=True, size=10)
 
         # Data cells per country
         for ci, country in enumerate(ALL_COLS):
@@ -283,10 +285,10 @@ for yi, yr in enumerate(YEARS):
 
         ws.row_dimensions[row].height = 24
 
-    data_row += len(METRICS)
+    data_row += len(YEARS)
 
-    # Separator between years
-    if yi < len(YEARS) - 1:
+    # Separator between metric groups
+    if mi < len(METRICS) - 1:
         ws.row_dimensions[data_row].height = 6
         data_row += 1
 
