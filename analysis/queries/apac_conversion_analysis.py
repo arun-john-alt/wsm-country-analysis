@@ -24,6 +24,7 @@ SL = f"{PROJ}.sales_presales_leads_no_pi.salesleads_qt"
 
 COUNTRIES = ['Vietnam', 'Singapore', 'Philippines', 'Indonesia', 'Malaysia', 'Thailand']
 YEARS     = ['2024', '2025', '2026']
+APAC_TOTAL_KEY = '__APAC_TOTAL__'
 
 OUT = os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -91,6 +92,66 @@ rows = list(bq.query(sql).result())
 data = {}
 for r in rows:
     data[(r['country'], r['yr'])] = {
+        'leads': int(r['leads'] or 0),
+        'c30':   int(r['convs_30d'] or 0),
+        'c60':   int(r['convs_60d'] or 0),
+        'c90':   int(r['convs_90d'] or 0),
+    }
+
+# Also fetch APAC Total (all Region='APAC' countries)
+sql_total = f"""
+SELECT
+  'APAC Total' AS country,
+  SUBSTR(Created_Time,8,4) AS yr,
+  COUNT(DISTINCT NON_JUNK_EMAIL) AS leads,
+  COUNT(DISTINCT IF(
+    Conversion = 'converted'
+    AND ConversionDate IS NOT NULL AND ConversionDate != ''
+    AND SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)) IS NOT NULL
+    AND DATE_DIFF(
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)),
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11)),
+      DAY) BETWEEN 0 AND 30,
+    NON_JUNK_EMAIL, NULL)) AS convs_30d,
+  COUNT(DISTINCT IF(
+    Conversion = 'converted'
+    AND ConversionDate IS NOT NULL AND ConversionDate != ''
+    AND SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)) IS NOT NULL
+    AND DATE_DIFF(
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)),
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11)),
+      DAY) BETWEEN 0 AND 60,
+    NON_JUNK_EMAIL, NULL)) AS convs_60d,
+  COUNT(DISTINCT IF(
+    Conversion = 'converted'
+    AND ConversionDate IS NOT NULL AND ConversionDate != ''
+    AND SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)) IS NOT NULL
+    AND DATE_DIFF(
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(ConversionDate,1,11)),
+      SAFE.PARSE_DATE('%d %b %Y', SUBSTR(Created_Time,1,11)),
+      DAY) BETWEEN 0 AND 90,
+    NON_JUNK_EMAIL, NULL)) AS convs_90d
+FROM `{SL}`
+WHERE Junk = 'false'
+  AND PRODUCT_GROUP = 'AD_GROUP'
+  AND User_Type IN ('new','adcs','mecs','inactive customer','inactive lead')
+  AND isHaveToBeRemoved = 'Non Junk Email'
+  AND Region = 'APAC'
+  AND SUBSTR(Created_Time,8,4) IN ('2024','2025','2026')
+  AND CONCAT(SUBSTR(Created_Time,8,4), '-',
+      LPAD(CAST(CASE SUBSTR(Created_Time,4,3)
+        WHEN 'Jan' THEN 1  WHEN 'Feb' THEN 2  WHEN 'Mar' THEN 3
+        WHEN 'Apr' THEN 4  WHEN 'May' THEN 5  WHEN 'Jun' THEN 6
+        WHEN 'Jul' THEN 7  WHEN 'Aug' THEN 8  WHEN 'Sep' THEN 9
+        WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+      END AS STRING), 2, '0'))
+      BETWEEN CONCAT(SUBSTR(Created_Time,8,4), '-01')
+          AND CONCAT(SUBSTR(Created_Time,8,4), '-07')
+GROUP BY 1, 2
+ORDER BY yr
+"""
+for r in bq.query(sql_total).result():
+    data[(APAC_TOTAL_KEY, r['yr'])] = {
         'leads': int(r['leads'] or 0),
         'c30':   int(r['convs_30d'] or 0),
         'c60':   int(r['convs_60d'] or 0),
@@ -207,6 +268,28 @@ for i, country in enumerate(COUNTRIES):
 
     ws.row_dimensions[row].height = 26
     row += 1
+
+# Separator row
+ws.row_dimensions[row].height = 6
+row += 1
+
+# APAC Total row — navy background, white text, bold
+cell(ws, row, 1, "APAC Total (all countries)", fill=NAVY, bold=True, size=10, color="FFFFFF", h='left')
+col = 2
+for yr in YEARS:
+    d = data.get((APAC_TOTAL_KEY, yr), {'leads':0,'c30':0,'c60':0,'c90':0})
+    l = d['leads']; c30 = d['c30']; c60 = d['c60']; c90 = d['c90']
+    sec_fill = [PINK, BLUE, GREEN][YEARS.index(yr)]
+
+    c = ws.cell(row=row, column=col, value=l if l else 0)
+    c.font = af(bold=True, size=11, color="1A1A1A"); c.alignment = ac('center'); c.fill = sec_fill
+
+    conv_cell(ws, row, col+1, c30, l, sec_fill)
+    conv_cell(ws, row, col+2, c60, l, sec_fill)
+    conv_cell(ws, row, col+3, c90, l, sec_fill)
+    col += 4
+ws.row_dimensions[row].height = 26
+row += 1
 
 # Footnote
 ws.merge_cells(f'A{row+1}:M{row+1}')
