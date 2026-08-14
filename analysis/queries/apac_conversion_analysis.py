@@ -163,12 +163,20 @@ print("Done. Building Excel...")
 # ── Styles ────────────────────────────────────────────────────────────────────
 YELLOW  = PatternFill("solid", fgColor="FFD700")
 NAVY    = PatternFill("solid", fgColor="1F4E79")
-PINK    = PatternFill("solid", fgColor="FFB6C1")
-BLUE    = PatternFill("solid", fgColor="D9E8F5")
-GREEN   = PatternFill("solid", fgColor="90EE90")
-GREEN_D = PatternFill("solid", fgColor="C6EFCE")
-PINK_D  = PatternFill("solid", fgColor="FFC7CE")
+PINK    = PatternFill("solid", fgColor="FFB6C1")   # 2024
+BLUE    = PatternFill("solid", fgColor="D9E8F5")   # 2025
+GREEN   = PatternFill("solid", fgColor="90EE90")   # 2026
 LGREY   = PatternFill("solid", fgColor="F2F2F2")
+
+YEAR_FILLS = {'2024': PINK, '2025': BLUE, '2026': GREEN}
+YEAR_LABELS = {'2024': '2024  (Jan–Jul)', '2025': '2025  (Jan–Jul)', '2026': '2026  (Jan–Jul)*'}
+
+# Columns: COUNTRIES + APAC Total
+ALL_COLS = COUNTRIES + ['APAC Total']
+# Row key for APAC Total
+def get_d(country, yr):
+    key = APAC_TOTAL_KEY if country == 'APAC Total' else country
+    return data.get((key, yr), {'leads':0,'c30':0,'c60':0,'c90':0})
 
 def af(bold=False, size=10, color="000000"):
     return Font(bold=bold, size=size, color=color)
@@ -183,128 +191,123 @@ def cell(ws, row, col, value, fill=None, bold=False, size=10, color="000000", h=
     c.alignment = Alignment(horizontal=h, vertical='center', wrap_text=wrap)
     return c
 
-def pct(n, d):
-    if not d: return "—"
-    return f"{n/d*100:.1f}%"
-
 def conv_cell(ws, row, col, convs, leads, fill):
-    """Write 'N (X.X%)' — bold number + grey pct"""
+    """Write bold N + grey (X.X%) in same cell."""
     c = ws.cell(row=row, column=col)
     c.alignment = ac('center')
     if fill: c.fill = fill
     if convs == 0 and leads == 0:
         c.value = "—"; c.font = af(size=10, color="808080"); return
     p = f"{convs/leads*100:.1f}%" if leads else "—"
-    txt = f"{convs}"
-    pct_txt = f" ({p})"
     if RICH_TEXT:
         c.value = CellRichText(
-            TextBlock(InlineFont(b=True,  sz=11, color="1A1A1A"), txt),
-            TextBlock(InlineFont(b=False, sz=8,  color="808080"), pct_txt),
+            TextBlock(InlineFont(b=True,  sz=11, color="1A1A1A"), str(convs)),
+            TextBlock(InlineFont(b=False, sz=8,  color="808080"), f" ({p})"),
         )
     else:
-        c.value = f"{txt}{pct_txt}"
-        c.font = af(bold=True, size=11)
+        c.value = f"{convs} ({p})"; c.font = af(bold=True, size=11)
 
 # ── Build workbook ─────────────────────────────────────────────────────────────
+# Layout (transposed):
+#   Rows = Year × Metric (Leads, 30d, 60d, 90d)
+#   Cols = Country (Vietnam, Singapore, Philippines, Indonesia, Malaysia, Thailand, APAC Total)
+#
+# Col 1 = Year label (merged across 4 metric rows)
+# Col 2 = Metric label (Leads / 30d Convs / 60d Convs / 90d Convs)
+# Col 3+ = one col per country/region
+
 wb = openpyxl.Workbook()
 ws = wb.active
 ws.title = "APAC Conv Analysis"
 
+N_COUNTRIES = len(ALL_COLS)   # 7
+LAST_COL    = 2 + N_COUNTRIES  # col 9
+
 # Row 1: Title
-ws.merge_cells('A1:M1')
+ws.merge_cells(f'A1:{get_column_letter(LAST_COL)}1')
 cell(ws, 1, 1, "APAC — 30/60/90-Day Conversion Analysis  (Jan–Jul 2024 / 2025 / 2026)",
      fill=YELLOW, bold=True, size=13)
 ws.row_dimensions[1].height = 28
 
-# Row 2: blank
+# Row 2: blank spacer
 ws.row_dimensions[2].height = 8
 
-# Row 3: Section group headers
-# Col A = Country (navy)
-# Cols B-E = 2024 (pink): Leads | 30d | 60d | 90d
-# Cols F-I = 2025 (blue)
-# Cols J-M = 2026 (green)
-ws.merge_cells('A3:A4'); cell(ws, 3, 1, "Country", fill=NAVY, bold=True, size=10, color="FFFFFF")
-ws.merge_cells('B3:E3'); cell(ws, 3, 2, "2024  (Jan–Jul)", fill=PINK, bold=True, size=10)
-ws.merge_cells('F3:I3'); cell(ws, 3, 6, "2025  (Jan–Jul)", fill=BLUE, bold=True, size=10)
-ws.merge_cells('J3:M3'); cell(ws, 3, 10, "2026  (Jan–Jul)*", fill=GREEN, bold=True, size=10)
-ws.row_dimensions[3].height = 22
+# Row 3: Column headers
+cell(ws, 3, 1, "Year",   fill=NAVY, bold=True, size=10, color="FFFFFF")
+cell(ws, 3, 2, "Metric", fill=NAVY, bold=True, size=10, color="FFFFFF")
+for ci, country in enumerate(ALL_COLS):
+    is_total = country == 'APAC Total'
+    f = NAVY if is_total else LGREY
+    txt_color = "FFFFFF" if is_total else "000000"
+    cell(ws, 3, 3 + ci, country, fill=f, bold=True, size=10, color=txt_color, wrap=True)
+ws.row_dimensions[3].height = 30
 
-# Row 4: Column sub-headers (skip col 1 — it's merged from A3:A4)
-sub_hdrs = ["Leads", "30d Convs", "60d Convs", "90d Convs"]
-fills = [PINK]*4 + [BLUE]*4 + [GREEN]*4
-for i, (hdr, f) in enumerate(zip(sub_hdrs*3, fills)):
-    col = i + 2
-    cell(ws, 4, col, hdr, fill=f, bold=True, size=9, wrap=True)
-ws.row_dimensions[4].height = 30
+# Data rows: 3 years × 4 metrics = 12 data rows + 2 separator rows
+METRICS = [
+    ('Leads',     'leads'),
+    ('30d Convs', 'c30'),
+    ('60d Convs', 'c60'),
+    ('90d Convs', 'c90'),
+]
 
-# Data rows
-row = 5
-for i, country in enumerate(COUNTRIES):
-    row_fill = LGREY if i % 2 == 0 else None
+data_row = 4
+for yi, yr in enumerate(YEARS):
+    yr_fill = YEAR_FILLS[yr]
+    yr_label = YEAR_LABELS[yr]
 
-    # Country name
-    cell(ws, row, 1, country, fill=row_fill, bold=True, size=10, h='left')
+    # Merge year label across 4 metric rows
+    yr_start = data_row
+    yr_end   = data_row + len(METRICS) - 1
+    ws.merge_cells(f'A{yr_start}:A{yr_end}')
+    cell(ws, yr_start, 1, yr_label, fill=yr_fill, bold=True, size=11)
 
-    col = 2
-    for yr in YEARS:
-        d = data.get((country, yr), {'leads':0,'c30':0,'c60':0,'c90':0})
-        l = d['leads']; c30 = d['c30']; c60 = d['c60']; c90 = d['c90']
+    for mi, (metric_label, metric_key) in enumerate(METRICS):
+        row = data_row + mi
+        # Metric label
+        cell(ws, row, 2, metric_label, fill=yr_fill, bold=False, size=10)
 
-        sec_fill = [PINK, BLUE, GREEN][YEARS.index(yr)]
+        # Data cells per country
+        for ci, country in enumerate(ALL_COLS):
+            d = get_d(country, yr)
+            l = d['leads']
+            is_total = country == 'APAC Total'
+            col_fill = NAVY if is_total else yr_fill
 
-        # Leads cell
-        c = ws.cell(row=row, column=col, value=l if l else 0)
-        c.font = af(bold=True, size=11, color="1A1A1A")
-        c.alignment = ac('center')
-        c.fill = sec_fill
+            if metric_key == 'leads':
+                c = ws.cell(row=row, column=3+ci, value=l if l else 0)
+                c.font = af(bold=True, size=11, color="FFFFFF" if is_total else "1A1A1A")
+                c.alignment = ac('center'); c.fill = col_fill
+            else:
+                v = d[metric_key]
+                conv_cell(ws, row, 3+ci, v, l, col_fill)
 
-        # 30d, 60d, 90d
-        conv_cell(ws, row, col+1, c30, l, sec_fill)
-        conv_cell(ws, row, col+2, c60, l, sec_fill)
-        conv_cell(ws, row, col+3, c90, l, sec_fill)
-        col += 4
+        ws.row_dimensions[row].height = 24
 
-    ws.row_dimensions[row].height = 26
-    row += 1
+    data_row += len(METRICS)
 
-# Separator row
-ws.row_dimensions[row].height = 6
-row += 1
-
-# APAC Total row — navy background, white text, bold
-cell(ws, row, 1, "APAC Total (all countries)", fill=NAVY, bold=True, size=10, color="FFFFFF", h='left')
-col = 2
-for yr in YEARS:
-    d = data.get((APAC_TOTAL_KEY, yr), {'leads':0,'c30':0,'c60':0,'c90':0})
-    l = d['leads']; c30 = d['c30']; c60 = d['c60']; c90 = d['c90']
-    sec_fill = [PINK, BLUE, GREEN][YEARS.index(yr)]
-
-    c = ws.cell(row=row, column=col, value=l if l else 0)
-    c.font = af(bold=True, size=11, color="1A1A1A"); c.alignment = ac('center'); c.fill = sec_fill
-
-    conv_cell(ws, row, col+1, c30, l, sec_fill)
-    conv_cell(ws, row, col+2, c60, l, sec_fill)
-    conv_cell(ws, row, col+3, c90, l, sec_fill)
-    col += 4
-ws.row_dimensions[row].height = 26
-row += 1
+    # Separator between years
+    if yi < len(YEARS) - 1:
+        ws.row_dimensions[data_row].height = 6
+        data_row += 1
 
 # Footnote
-ws.merge_cells(f'A{row+1}:M{row+1}')
-cell(ws, row+1, 1, "* 2026 note: 90-day window is complete only for leads created before ~16 May 2026 (Jan–Apr cohort). Jun–Jul leads still have time remaining.",
+fn_row = data_row + 1
+ws.merge_cells(f'A{fn_row}:{get_column_letter(LAST_COL)}{fn_row}')
+cell(ws, fn_row, 1,
+     "* 2026 note: 90-day window complete only for leads created before ~16 May 2026 (Jan–Apr). Jun–Jul leads still have time remaining.",
      bold=False, size=8, color="808080", h='left')
 
 # Column widths
-ws.column_dimensions['A'].width = 16
-for col in range(2, 14):
-    ws.column_dimensions[get_column_letter(col)].width = 13
+ws.column_dimensions['A'].width = 20  # Year
+ws.column_dimensions['B'].width = 13  # Metric
+for ci in range(N_COUNTRIES):
+    col_letter = get_column_letter(3 + ci)
+    ws.column_dimensions[col_letter].width = 16 if ALL_COLS[ci] == 'APAC Total' else 14
 
-ws.freeze_panes = 'B5'
+ws.freeze_panes = 'C4'
 
 wb.save(OUT)
 print(f"\n📊 Saved: {OUT}")
-print(f"   Countries: {', '.join(COUNTRIES)}")
-print(f"   Sheets: 'APAC Conv Analysis'")
-print(f"   Columns: Leads | 30d Convs (%) | 60d Convs (%) | 90d Convs (%) × 3 years")
+print(f"   Layout: Years as rows, Countries as columns")
+print(f"   Countries: {', '.join(ALL_COLS)}")
+print(f"   Metrics per year: Leads | 30d Convs (%) | 60d Convs (%) | 90d Convs (%)")
