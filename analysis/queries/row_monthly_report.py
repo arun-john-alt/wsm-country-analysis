@@ -204,10 +204,10 @@ def q_leads_excl(months):
     return f"""
 SELECT
   dm_region                                                         AS country,
-  COUNT(DISTINCT Email)                                             AS leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
+  COUNT(DISTINCT NON_JUNK_EMAIL)                                    AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL))  AS convs
 FROM (
-  SELECT Email, Conversion,
+  SELECT NON_JUNK_EMAIL, Conversion,
     {DM_REGION_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_date_filter(months)}
@@ -225,10 +225,10 @@ def q_leads_all(months):
     return f"""
 SELECT
   dm_region                                                         AS country,
-  COUNT(DISTINCT Email)                                             AS leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS convs
+  COUNT(DISTINCT NON_JUNK_EMAIL)                                    AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL))  AS convs
 FROM (
-  SELECT Email, Conversion,
+  SELECT NON_JUNK_EMAIL, Conversion,
     {DM_REGION_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_date_filter(months)}
@@ -276,10 +276,10 @@ def q_sem_convs(months):
     return f"""
 SELECT
   dm_region                                                         AS country,
-  COUNT(DISTINCT Email)                                             AS sem_leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL))           AS sem_convs
+  COUNT(DISTINCT NON_JUNK_EMAIL)                                    AS sem_leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL))  AS sem_convs
 FROM (
-  SELECT Email, Conversion,
+  SELECT NON_JUNK_EMAIL, Conversion,
     {DM_REGION_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_date_filter(months)}

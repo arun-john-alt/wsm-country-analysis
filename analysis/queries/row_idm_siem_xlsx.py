@@ -156,10 +156,10 @@ def q_leads_excl(ym, products):
     prod_list = ", ".join(products)
     return f"""
 SELECT dm_region AS country,
-  COUNT(DISTINCT Email) AS leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS convs
+  COUNT(DISTINCT NON_JUNK_EMAIL) AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL)) AS convs
 FROM (
-  SELECT Email, Conversion, {DM_CASE} AS dm_region
+  SELECT NON_JUNK_EMAIL, Conversion, {DM_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_ym_expr()} = '{ym}'
     AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP'
@@ -172,10 +172,10 @@ def q_leads_all(ym, products):
     prod_list = ", ".join(products)
     return f"""
 SELECT dm_region AS country,
-  COUNT(DISTINCT Email) AS leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS convs
+  COUNT(DISTINCT NON_JUNK_EMAIL) AS leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL)) AS convs
 FROM (
-  SELECT Email, Conversion, {DM_CASE} AS dm_region
+  SELECT NON_JUNK_EMAIL, Conversion, {DM_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_ym_expr()} = '{ym}'
     AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP'
@@ -212,10 +212,10 @@ def q_sem_convs(ym, products):
     prod_list = ", ".join(products)
     return f"""
 SELECT dm_region AS country,
-  COUNT(DISTINCT Email) AS sem_leads,
-  COUNT(DISTINCT IF(Conversion='converted', Email, NULL)) AS sem_convs
+  COUNT(DISTINCT NON_JUNK_EMAIL) AS sem_leads,
+  COUNT(DISTINCT IF(Conversion='converted', NON_JUNK_EMAIL, NULL)) AS sem_convs
 FROM (
-  SELECT Email, Conversion, {DM_CASE} AS dm_region
+  SELECT NON_JUNK_EMAIL, Conversion, {DM_CASE} AS dm_region
   FROM `{SL}`
   WHERE {sl_ym_expr()} = '{ym}'
     AND Junk = 'false' AND PRODUCT_GROUP = 'AD_GROUP'
